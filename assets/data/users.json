@@ -1,0 +1,94 @@
+[
+  {
+    "username": "@lebtivitylebanon",
+    "fullname": "Lebtivity",
+    "email": "info@lebtivity.com",
+    "bio": "Popular event planning and organizing establishment in Lebanon",
+    "profileSource": "assets/images/avatars/lebtivity.jpg",
+    "ownedEvents": [
+      "1",
+      "4"
+    ]
+  },
+  {
+    "username": "@janedoe",
+    "fullname": "Jane Doe",
+    "email": "jane@example.com",
+    "bio": "I am a professional event planner. I have planned over 100 events across Lebanon",
+    "profileSource": "assets/images/avatars/portrait2.jpg",
+    "ownedEvents": ["2", "3"],
+    "followers": ["@lebtivitylebanon", "@alexsmith", "@emilyjones"]
+  },
+  {
+    "username": "@alexsmith",
+    "fullname": "Alex Smith",
+    "email": "alex@example.com"
+  },
+  {
+    "username": "@emilyjones",
+    "fullname": "Emily Jones",
+    "email": "emily@example.com"
+  },
+  {
+    "username": "@michaelbrown",
+    "fullname": "Michael Brown",
+    "email": "michael@example.com"
+  },
+  {
+    "username": "@sarawilson",
+    "fullname": "Sara Wilson",
+    "email": "sara@example.com"
+  },
+  {
+    "username": "@davidmartin",
+    "fullname": "David Martin",
+    "email": "david@example.com"
+  },
+  {
+    "username": "@lauragarcia",
+    "fullname": "Laura Garcia",
+    "email": "laura@example.com",
+    "profileSource": "assets/images/avatars/portrait3.jpg"
+  },
+  {
+    "username": "@chrislee",
+    "fullname": "Chris Lee",
+    "email": "chris@example.com"
+  },
+  {
+    "username": "@jessicathomas",
+    "fullname": "Jessica Thomas",
+    "email": "jessica@example.com"
+  },
+  {
+    "username": "@brianmoore",
+    "fullname": "Brian Moore",
+    "email": "brian@example.com"
+  },
+  {
+    "username": "@outeventsleb",
+    "fullname": "Outdoor Events",
+    "email": "info@outeventsleb.com"
+  },
+  {
+    "username": "@foodiesleb",
+    "fullname": "Foodies Lebanon",
+    "email": "info@foodiesleb.com",
+    "profileSource": "assets/images/avatars/foodies.jpg"
+  },
+  {
+    "username": "@lebanonhikers",
+    "fullname": "Lebanon Hikers",
+    "email": "info@lebhikers.com"
+  },
+  {
+    "username": "@pitstopkarting",
+    "fullname": "Pitstop Karting",
+    "email": "info@pitstopkarting.com"
+  },
+  {
+    "username": "@forumdebeyrouth",
+    "fullname": "Forum de Beyrouth",
+    "email": "info@beyrouthforum.com"
+  }
+]
