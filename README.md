@@ -1,16 +1,14 @@
 # keef_w_wen
 
-A new Flutter project.
+An application made for event organizing, handling, and management in Lebanon.
 
-## Getting Started
+# How does it work?
 
-This project is a starting point for a Flutter application.
+It uses dart and flutter as a client-side mobile application. What you're seeing right now is exactly that.
+It's made using android studio and my android 8 huawei phone, though I also have an android 15 emulator installed.
+To be completely honest, it isn't the most ideal testing apparatus, but it's mobile and can be shown to people so that's
+why I use it.
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Anyways, in the app comes 2 main data models. The event and the user. Obviously, these are two classes that represent the
+two main interactors in the app. The event has a TON of information about various kinds of events, and the users, well, are 
+users. A person can log into this app as any user provided they have the correct credentials.
