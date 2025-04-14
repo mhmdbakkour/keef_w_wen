@@ -139,17 +139,19 @@ class _MapPageState extends State<MapPage> {
                   markers: [
                     if (!routing)
                       Marker(
+                        alignment: Alignment.center,
                         point: userLocation!,
                         width: 40.0,
                         height: 40.0,
                         child: Icon(
-                          Icons.location_history,
+                          Icons.my_location,
                           color: Colors.red,
                           size: 40.0,
                         ),
                       ),
                     if (routing)
                       Marker(
+                        alignment: Alignment.topCenter,
                         point: endPoint,
                         width: 40.0,
                         height: 40.0,

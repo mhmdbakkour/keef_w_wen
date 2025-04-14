@@ -133,16 +133,19 @@ class EventCardWidget extends StatelessWidget {
                       child: Text("Details"),
                     ),
                     TextButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) {
-                              return JoinEventPage(event: event);
-                            },
-                          ),
-                        );
-                      },
+                      onPressed:
+                          event.openStatus
+                              ? () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) {
+                                      return JoinEventPage(event: event);
+                                    },
+                                  ),
+                                );
+                              }
+                              : null,
                       child: Text("Join"),
                     ),
                   ],

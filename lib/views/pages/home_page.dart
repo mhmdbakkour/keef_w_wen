@@ -4,7 +4,6 @@ import 'package:keef_w_wen/classes/providers.dart';
 import 'package:keef_w_wen/data/notifiers.dart';
 import 'package:keef_w_wen/views/pages/create_event_page.dart';
 import '../../classes/data/event.dart';
-import '../../classes/data/user.dart';
 import '../widgets/event_card_brief_widget.dart';
 
 enum SortType { distance, price, rating, time }

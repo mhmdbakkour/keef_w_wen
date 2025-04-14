@@ -99,14 +99,24 @@ class AppTextStyle {
     fontWeight: FontWeight.w600,
   );
 
-  //Friend Brief Widget
-  static const TextStyle friendUsername = TextStyle(
+  //User Brief Widget
+  static const TextStyle userUsername = TextStyle(
     fontSize: 16,
     fontWeight: FontWeight.w300,
   );
-  static const TextStyle friendFullname = TextStyle(
+  static const TextStyle userFullname = TextStyle(
     fontSize: 1,
     fontWeight: FontWeight.w200,
+  );
+
+  //User Chat Widget
+  static const TextStyle chatTitle = TextStyle(
+    fontSize: 12,
+    fontWeight: FontWeight.w500,
+  );
+  static const TextStyle chatText = TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.w400,
   );
 
   //Profile Page
@@ -147,5 +157,23 @@ class AppTextStyle {
   static const TextStyle joinEventHeadline = TextStyle(
     fontSize: 18,
     fontWeight: FontWeight.w600,
+  );
+
+  //Event Lobby Page
+  static const TextStyle countdownTitle = TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.w500,
+  );
+  static const TextStyle countdownNumbers = TextStyle(
+    fontSize: 20,
+    fontWeight: FontWeight.bold,
+  );
+  static const TextStyle countdownLabels = TextStyle(
+    fontSize: 12,
+    fontWeight: FontWeight.w300,
+  );
+  static const TextStyle feedTileTitle = TextStyle(
+    fontSize: 12,
+    fontWeight: FontWeight.w300,
   );
 }

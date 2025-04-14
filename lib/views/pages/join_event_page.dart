@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:keef_w_wen/views/pages/view_profile_page.dart';
-
+import 'package:keef_w_wen/views/pages/event_lobby_page.dart';
 import '../../classes/data/event.dart';
 import '../../classes/data/user.dart';
 import '../../classes/providers.dart';
@@ -46,12 +45,10 @@ class JoinEventPage extends ConsumerWidget {
                   SizedBox(height: 16),
                   // Event Details Section
                   Text(event.title, style: AppTextStyle.joinEventTitle),
-                  SizedBox(height: 8),
                   Text(
                     "${DateFormat.yMMMd().format(event.dateStart)} at ${DateFormat.jm().format(event.dateStart)}",
                     style: AppTextStyle.joinEventDate,
                   ),
-                  SizedBox(height: 8),
                   Text(event.location, style: AppTextStyle.joinEventLocation),
                   SizedBox(height: 8),
                   Text(
@@ -138,7 +135,14 @@ class JoinEventPage extends ConsumerWidget {
                   SizedBox(height: 8),
                   FilledButton(
                     style: ElevatedButton.styleFrom(elevation: 4),
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => EventLobbyPage(event: event),
+                        ),
+                      );
+                    },
                     child: Text("Join Event"),
                   ),
                 ],

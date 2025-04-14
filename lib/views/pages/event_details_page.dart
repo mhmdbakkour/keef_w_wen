@@ -5,10 +5,10 @@ import 'package:keef_w_wen/data/constants.dart';
 import 'package:keef_w_wen/views/pages/event_participants_page.dart';
 import 'package:keef_w_wen/views/pages/join_event_page.dart';
 import 'package:keef_w_wen/views/widgets/rating_widget.dart';
-
 import '../../classes/data/event.dart';
 import '../../classes/data/user.dart';
 import '../../classes/providers.dart';
+import 'event_lobby_page.dart';
 
 class EventDetailsPage extends ConsumerWidget {
   const EventDetailsPage({super.key, required this.event});
@@ -19,6 +19,12 @@ class EventDetailsPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final detailColor = Theme.of(context).colorScheme.primary;
     List<User> users = ref.watch(userProvider).users;
+    User? loggedUser = ref.watch(loggedUserProvider).user;
+    bool userAttends =
+        event.participants
+            .where((user) => user.username == loggedUser!.username)
+            .toList()
+            .isNotEmpty;
 
     //Event data
     final String title = event.title;
@@ -67,7 +73,8 @@ class EventDetailsPage extends ConsumerWidget {
                             children: [
                               SizedBox(
                                 height: 275,
-                                width: MediaQuery.of(context).size.width * 0.9,
+                                width:
+                                    MediaQuery.of(context).size.width * 0.925,
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(12),
                                   child: Image.asset(
@@ -156,7 +163,7 @@ class EventDetailsPage extends ConsumerWidget {
                   ),
                   ListTile(
                     title: Text(
-                      DateFormat('dd/MM/yyyy').format(dateStart),
+                      "${DateFormat.jm().format(dateStart)} - ${DateFormat.yMMMd().format(dateStart)}",
                       style: AppTextStyle(context: context).eventDetailsBrief,
                     ),
                     subtitle: Text(
@@ -167,7 +174,7 @@ class EventDetailsPage extends ConsumerWidget {
                   ),
                   ListTile(
                     title: Text(
-                      DateFormat('dd/MM/yyyy').format(dateClosed),
+                      "${DateFormat.jm().format(dateClosed)} - ${DateFormat.yMMMd().format(dateClosed)}",
                       style: AppTextStyle(context: context).eventDetailsBrief,
                     ),
                     subtitle: Text(
@@ -211,7 +218,7 @@ class EventDetailsPage extends ConsumerWidget {
                   ),
                   ListTile(
                     title: Text(
-                      "${likes} likes received",
+                      "$likes likes received",
                       style: AppTextStyle(context: context).eventDetailsBrief,
                     ),
                     subtitle: Text(
@@ -281,20 +288,38 @@ class EventDetailsPage extends ConsumerWidget {
                   child: Text("View participants"),
                 ),
                 ElevatedButton(onPressed: () {}, child: Text("Contact")),
-                FilledButton(
-                  style: ElevatedButton.styleFrom(elevation: 2),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) {
-                          return JoinEventPage(event: event);
-                        },
-                      ),
-                    );
-                  },
-                  child: Text("Join"),
-                ),
+                userAttends
+                    ? FilledButton(
+                      style: ElevatedButton.styleFrom(elevation: 2),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) {
+                              return EventLobbyPage(event: event);
+                            },
+                          ),
+                        );
+                      },
+                      child: Text("Enter"),
+                    )
+                    : FilledButton(
+                      style: ElevatedButton.styleFrom(elevation: 2),
+                      onPressed:
+                          event.openStatus
+                              ? () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) {
+                                      return JoinEventPage(event: event);
+                                    },
+                                  ),
+                                );
+                              }
+                              : null,
+                      child: Text("Join"),
+                    ),
               ],
             ),
           ),
