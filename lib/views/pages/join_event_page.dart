@@ -9,13 +9,19 @@ import '../../data/constants.dart';
 import '../widgets/user_avatar_widget.dart';
 
 class JoinEventPage extends ConsumerWidget {
-  const JoinEventPage({super.key, required this.event});
+  const JoinEventPage({super.key, required this.eventId});
 
-  final Event event;
+  final String eventId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final Event? event = ref.watch(singleEventProvider(eventId));
+    User? loggedUser = ref.watch(loggedUserProvider).user;
     List<User> users = ref.watch(userProvider).users;
+
+    if (event == null) {
+      return const Scaffold(body: Center(child: Text("Event not found")));
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -135,13 +141,48 @@ class JoinEventPage extends ConsumerWidget {
                   SizedBox(height: 8),
                   FilledButton(
                     style: ElevatedButton.styleFrom(elevation: 4),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => EventLobbyPage(event: event),
-                        ),
-                      );
+                    onPressed: () async {
+                      final navigator = Navigator.of(context);
+                      final messenger = ScaffoldMessenger.of(context);
+
+                      try {
+                        await ref
+                            .read(eventProvider.notifier)
+                            .addParticipant(event.id, loggedUser.username);
+
+                        messenger.showSnackBar(
+                          SnackBar(
+                            content: Text('You have joined the event.'),
+                            duration: Duration(seconds: 1),
+                          ),
+                        );
+                        navigator.push(
+                          MaterialPageRoute(
+                            builder:
+                                (context) => EventLobbyPage(eventId: event.id),
+                          ),
+                        );
+                      } catch (e) {
+                        await showDialog(
+                          context: context,
+                          builder:
+                              (ctx) => AlertDialog(
+                                title: Text('Error'),
+                                content: Text(
+                                  e is ArgumentError
+                                      ? e.message!
+                                      : 'Something went wrong.',
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.of(ctx).pop(),
+                                    child: Text('OK'),
+                                  ),
+                                ],
+                              ),
+                        );
+                      }
+                      ;
                     },
                     child: Text("Join Event"),
                   ),

@@ -5,10 +5,8 @@
     "email": "info@lebtivity.com",
     "bio": "Popular event planning and organizing establishment in Lebanon",
     "profileSource": "assets/images/avatars/lebtivity.jpg",
-    "ownedEvents": [
-      "1",
-      "4"
-    ]
+    "mobileNumber": 71739192,
+    "participatedEvents": ["1"]
   },
   {
     "username": "@janedoe",
@@ -16,7 +14,6 @@
     "email": "jane@example.com",
     "bio": "I am a professional event planner. I have planned over 100 events across Lebanon",
     "profileSource": "assets/images/avatars/portrait2.jpg",
-    "ownedEvents": ["2", "3"],
     "followers": ["@lebtivitylebanon", "@alexsmith", "@emilyjones"]
   },
   {
@@ -68,27 +65,32 @@
   {
     "username": "@outeventsleb",
     "fullname": "Outdoor Events",
-    "email": "info@outeventsleb.com"
+    "email": "info@outeventsleb.com",
+    "participatedEvents": ["2"]
   },
   {
     "username": "@foodiesleb",
     "fullname": "Foodies Lebanon",
     "email": "info@foodiesleb.com",
-    "profileSource": "assets/images/avatars/foodies.jpg"
+    "profileSource": "assets/images/avatars/foodies.jpg",
+    "participatedEvents": ["3"]
   },
   {
     "username": "@lebanonhikers",
     "fullname": "Lebanon Hikers",
-    "email": "info@lebhikers.com"
+    "email": "info@lebhikers.com",
+    "participatedEvents": ["4"]
   },
   {
     "username": "@pitstopkarting",
     "fullname": "Pitstop Karting",
-    "email": "info@pitstopkarting.com"
+    "email": "info@pitstopkarting.com",
+    "participatedEvents": ["5"]
   },
   {
     "username": "@forumdebeyrouth",
     "fullname": "Forum de Beyrouth",
-    "email": "info@beyrouthforum.com"
+    "email": "info@beyrouthforum.com",
+    "participatedEvents": ["6"]
   }
 ]

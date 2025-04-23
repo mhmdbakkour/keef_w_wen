@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:keef_w_wen/classes/providers.dart';
-import 'package:keef_w_wen/views/pages/view_profile_page.dart';
 import 'package:keef_w_wen/views/widgets/search_bar_widget.dart';
-import '../../classes/data/event.dart';
 import '../../classes/data/user.dart';
 import '../widgets/user_brief_widget.dart';
 
@@ -55,16 +53,14 @@ class _PeoplePageState extends ConsumerState<PeoplePage> {
           ),
         ),
         SizedBox(height: 10),
-        Container(
-          child: ListView.builder(
-            shrinkWrap: true,
-            physics: NeverScrollableScrollPhysics(),
-            itemCount: users.length,
-            itemBuilder: (context, index) {
-              User user = users[index];
-              return UserBriefWidget(user: user);
-            },
-          ),
+        ListView.builder(
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
+          itemCount: users.length,
+          itemBuilder: (context, index) {
+            User user = users[index];
+            return UserBriefWidget(user: user);
+          },
         ),
         SizedBox(height: 20),
       ],

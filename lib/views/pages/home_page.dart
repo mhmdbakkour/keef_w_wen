@@ -187,7 +187,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                       sortedEvents[index]; // Declare event properly inside scope
                   return Padding(
                     padding: const EdgeInsets.all(4),
-                    child: EventCardBriefWidget(event: event),
+                    child: EventCardBriefWidget(eventId: event.id),
                   );
                 } else {
                   return Padding(

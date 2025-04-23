@@ -4,25 +4,33 @@ import 'package:intl/intl.dart';
 import 'package:keef_w_wen/data/constants.dart';
 import 'package:keef_w_wen/views/pages/event_participants_page.dart';
 import 'package:keef_w_wen/views/pages/join_event_page.dart';
+import 'package:keef_w_wen/views/pages/view_profile_page.dart';
 import 'package:keef_w_wen/views/widgets/rating_widget.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../classes/data/event.dart';
 import '../../classes/data/user.dart';
 import '../../classes/providers.dart';
 import 'event_lobby_page.dart';
 
 class EventDetailsPage extends ConsumerWidget {
-  const EventDetailsPage({super.key, required this.event});
+  const EventDetailsPage({super.key, required this.eventId});
 
-  final Event event;
+  final String eventId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final detailColor = Theme.of(context).colorScheme.primary;
+    final Event? event = ref.watch(singleEventProvider(eventId));
     List<User> users = ref.watch(userProvider).users;
     User? loggedUser = ref.watch(loggedUserProvider).user;
+
+    if (event == null) {
+      return const Center(child: Text("Event not found"));
+    }
+
     bool userAttends =
         event.participants
-            .where((user) => user.username == loggedUser!.username)
+            .where((user) => user.username == loggedUser.username)
             .toList()
             .isNotEmpty;
 
@@ -40,7 +48,7 @@ class EventDetailsPage extends ConsumerWidget {
     final bool openStatus = event.openStatus;
     final DateTime dateClosed = event.dateClosed;
     final int seats = event.seats;
-    final int likes = event.likes;
+    final int likes = event.likedUsers.length;
     final double price = event.price;
     final double rating = event.rating;
     final List<String> tags = event.tags;
@@ -69,41 +77,9 @@ class EventDetailsPage extends ConsumerWidget {
                       itemCount: event.images.length + 1,
                       itemBuilder: (context, index) {
                         if (index == 0) {
-                          return Row(
-                            children: [
-                              SizedBox(
-                                height: 275,
-                                width:
-                                    MediaQuery.of(context).size.width * 0.925,
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: Image.asset(
-                                    thumbnailSrc,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                              ),
-                              SizedBox(width: 10),
-                            ],
-                          );
+                          return _buildImage(context, thumbnailSrc);
                         } else {
-                          return Row(
-                            children: [
-                              Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(12),
-                                  color: Colors.black,
-                                ),
-                                height: 275,
-                                width: MediaQuery.of(context).size.width * 0.9,
-                                child: Image.asset(
-                                  images[index - 1],
-                                  fit: BoxFit.contain,
-                                ),
-                              ),
-                              SizedBox(width: 10),
-                            ],
-                          );
+                          return _buildImage(context, images[index - 1]);
                         }
                       },
                     ),
@@ -287,7 +263,10 @@ class EventDetailsPage extends ConsumerWidget {
                   },
                   child: Text("View participants"),
                 ),
-                ElevatedButton(onPressed: () {}, child: Text("Contact")),
+                ElevatedButton(
+                  onPressed: () => _showContact(context, event, users),
+                  child: Text("Contact"),
+                ),
                 userAttends
                     ? FilledButton(
                       style: ElevatedButton.styleFrom(elevation: 2),
@@ -296,7 +275,7 @@ class EventDetailsPage extends ConsumerWidget {
                           context,
                           MaterialPageRoute(
                             builder: (context) {
-                              return EventLobbyPage(event: event);
+                              return EventLobbyPage(eventId: event.id);
                             },
                           ),
                         );
@@ -312,7 +291,7 @@ class EventDetailsPage extends ConsumerWidget {
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) {
-                                      return JoinEventPage(event: event);
+                                      return JoinEventPage(eventId: event.id);
                                     },
                                   ),
                                 );
@@ -326,5 +305,121 @@ class EventDetailsPage extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Widget _buildImage(BuildContext context, String image) {
+    return Padding(
+      padding: EdgeInsets.only(right: 10),
+      child: InkWell(
+        child: SizedBox(
+          height: 275,
+          width: MediaQuery.of(context).size.width * 0.925,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Image.asset(image, fit: BoxFit.cover),
+          ),
+        ),
+        onTap: () {
+          showDialog(
+            context: context,
+            builder: (context) {
+              return _buildImageDialog(context, image);
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildImageDialog(BuildContext context, String image) {
+    return Dialog(
+      backgroundColor: Colors.black.withAlpha(0),
+      insetPadding: EdgeInsets.zero,
+      child: GestureDetector(
+        onTap: () => Navigator.of(context).pop(),
+        child: InteractiveViewer(
+          panEnabled: true,
+          minScale: 1,
+          maxScale: 2,
+          child: SizedBox(
+            width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.height,
+            child: Image.asset(image, fit: BoxFit.contain),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showContact(BuildContext context, Event event, List<User> users) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        User eventOwner = users.firstWhere(
+          (user) => user.username == event.hostOwner,
+        );
+        return Dialog(
+          child: Container(
+            padding: EdgeInsets.all(16),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  "Contact",
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+                Divider(thickness: 3),
+                SizedBox(height: 15),
+                ListTile(
+                  leading: Icon(Icons.person),
+                  title: Text(eventOwner.fullname),
+                  subtitle: Text(eventOwner.username),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ViewProfilePage(user: eventOwner),
+                      ),
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: Icon(Icons.alternate_email),
+                  title: Text(eventOwner.email),
+                  onTap: () => _sendEmail(eventOwner.email),
+                ),
+                eventOwner.mobileNumber > 0
+                    ? ListTile(
+                      leading: Icon(Icons.phone),
+                      title: Text(eventOwner.mobileNumber.toString()),
+                      onTap: () => _makeCall(eventOwner.mobileNumber),
+                    )
+                    : SizedBox.shrink(),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _sendEmail(String email) async {
+    final Uri emailUri = Uri(scheme: 'mailto', path: email);
+
+    if (await canLaunchUrl(emailUri)) {
+      await launchUrl(emailUri);
+    } else {
+      throw 'Could not launch email app';
+    }
+  }
+
+  void _makeCall(int number) async {
+    final Uri phoneUri = Uri(scheme: 'tel', path: number.toString());
+    if (await canLaunchUrl(phoneUri)) {
+      await launchUrl(phoneUri);
+    } else {
+      throw 'Could not launch phone app';
+    }
   }
 }

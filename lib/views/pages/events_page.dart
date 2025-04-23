@@ -35,7 +35,7 @@ class _EventsPageState extends ConsumerState<EventsPage> {
                             horizontal: 12,
                             vertical: 4,
                           ),
-                          child: EventCardWidget(event: event),
+                          child: EventCardWidget(eventId: event.id),
                         ),
                       ],
                     );
@@ -45,7 +45,7 @@ class _EventsPageState extends ConsumerState<EventsPage> {
                         horizontal: 12,
                         vertical: 4,
                       ),
-                      child: EventCardWidget(event: event),
+                      child: EventCardWidget(eventId: event.id),
                     );
                   }
                 } else {

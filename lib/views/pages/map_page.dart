@@ -27,6 +27,7 @@ class _MapPageState extends State<MapPage> {
   Future<void> _getUserLocation() async {
     try {
       Position position = await Geolocator.getCurrentPosition();
+      if (!mounted) return;
       setState(() {
         userLocation = LatLng(position.latitude, position.longitude);
       });
@@ -116,6 +117,11 @@ class _MapPageState extends State<MapPage> {
       polyline.add(LatLng(lat / 1E5, lng / 1E5));
     }
     return polyline;
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   @override

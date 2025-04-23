@@ -1,88 +1,138 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:keef_w_wen/classes/providers.dart';
-
 import '../../classes/data/user.dart';
-import '../../data/constants.dart';
-import '../../data/notifiers.dart';
-import '../pages/view_profile_page.dart';
 
-class UserChatWidget extends ConsumerWidget {
+class UserChatWidget extends ConsumerStatefulWidget {
   final User user;
   final String textMessage;
+  final bool isSender;
 
   const UserChatWidget({
     super.key,
     required this.user,
     required this.textMessage,
+    this.isSender = false,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    User? loggedUser = ref.watch(loggedUserProvider).user;
+  ConsumerState<UserChatWidget> createState() => _UserChatWidgetState();
+}
 
-    return ListTile(
-      contentPadding: EdgeInsets.only(right: 4, left: 10),
-      isThreeLine: true,
-      visualDensity: VisualDensity.compact,
+class _UserChatWidgetState extends ConsumerState<UserChatWidget> {
+  User get user => widget.user;
+  String get textMessage => widget.textMessage;
+  bool get isSender => widget.isSender;
 
-      leading:
-          user.profileSource != null && user.profileSource!.isNotEmpty
-              ? CircleAvatar(
-                radius: 20,
-                backgroundImage: AssetImage(user.profileSource!),
-              )
-              : CircleAvatar(
-                radius: 20,
-                child: Text(user.fullname[0].toUpperCase()),
-              ),
-      title: Text(
-        loggedUser!.username == user.username ? "You" : user.username,
-        style: AppTextStyle.chatTitle,
-      ),
-      subtitle: Text(textMessage, style: AppTextStyle.chatText),
-      trailing: PopupMenuButton<String>(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        offset: Offset(-10, -5),
-        icon: Icon(Icons.more_vert),
-        onSelected: (value) {
-          switch (value) {
-            case 'view':
-              if (loggedUser != null && user.username == loggedUser.username) {
-                Navigator.popUntil(context, ModalRoute.withName('/main'));
-                selectedPageNotifier.value = 4;
-              } else {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) {
-                      return ViewProfilePage(user: user);
-                    },
+  @override
+  Widget build(BuildContext context) {
+    return Consumer(
+      builder: (context, ref, child) {
+        User? loggedUser = ref.watch(loggedUserProvider).user;
+        return GestureDetector(
+          onLongPress: () => _showMessageOptions(context),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+            child: Align(
+              alignment:
+                  isSender ? Alignment.centerRight : Alignment.centerLeft,
+              child: Card(
+                color:
+                    isSender
+                        ? Theme.of(context).colorScheme.primary
+                        : Theme.of(context).colorScheme.tertiary,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 3),
+                        child: Text(
+                          user.username,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w400,
+                            color:
+                                isSender
+                                    ? Theme.of(
+                                      context,
+                                    ).colorScheme.onPrimaryContainer
+                                    : Theme.of(
+                                      context,
+                                    ).colorScheme.onTertiaryContainer,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        textMessage,
+                        style: TextStyle(
+                          color:
+                              isSender
+                                  ? Theme.of(
+                                    context,
+                                  ).colorScheme.onPrimaryContainer
+                                  : Theme.of(
+                                    context,
+                                  ).colorScheme.onTertiaryContainer,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
                   ),
-                );
-              }
-              break;
-            case 'message':
-              print('Send message to ${user.username}');
-              break;
-            case 'request':
-              print('Request ${user.username}');
-              break;
-          }
-        },
-        itemBuilder:
-            (BuildContext context) => <PopupMenuEntry<String>>[
-              PopupMenuItem<String>(value: 'view', child: Text('View Profile')),
-              PopupMenuItem<String>(
-                value: 'message',
-                child: Text('Send Message'),
+                ),
               ),
-              PopupMenuItem<String>(
-                value: 'request',
-                child: Text('Friend request'),
-              ),
-            ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showMessageOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children:
+                isSender
+                    ? [
+                      ListTile(
+                        leading: Icon(Icons.copy),
+                        title: Text("Copy"),
+                        onTap: () {
+                          Navigator.pop(context);
+                          // handle copy
+                        },
+                      ),
+                      ListTile(
+                        leading: Icon(Icons.delete),
+                        title: Text("Delete"),
+                        onTap: () {
+                          Navigator.pop(context);
+                          // handle delete
+                        },
+                      ),
+                    ]
+                    : [
+                      ListTile(
+                        leading: Icon(Icons.reply),
+                        title: Text("Reply"),
+                        onTap: () {
+                          Navigator.pop(context);
+                          // handle reply
+                        },
+                      ),
+                    ],
+          ),
+        );
+      },
     );
   }
 }

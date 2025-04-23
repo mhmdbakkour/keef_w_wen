@@ -1,48 +1,61 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:keef_w_wen/classes/providers.dart';
 import 'package:keef_w_wen/views/pages/event_details_page.dart';
+import 'package:keef_w_wen/views/pages/event_lobby_page.dart';
 import 'package:keef_w_wen/views/widgets/rating_widget.dart';
-import '../../classes/data/event.dart';
+import '../../classes/data/user.dart';
 import '../../data/constants.dart';
 import '../pages/join_event_page.dart';
 
-class EventCardWidget extends StatelessWidget {
-  const EventCardWidget({super.key, required this.event});
+class EventCardWidget extends ConsumerWidget {
+  const EventCardWidget({super.key, required this.eventId});
 
-  final Event event;
+  final String eventId;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final event = ref.watch(singleEventProvider(eventId));
+    final User loggedUser = ref.watch(loggedUserProvider).user;
+
+    if (event == null) {
+      return const Center(child: Text("Event not found"));
+    }
+
     final String title = event.title;
     final String description = event.description;
-    final String image = event.thumbnailSrc;
+    final String thumbnailSrc = event.thumbnailSrc;
     final double rating = event.rating;
     final Color iconColor = Theme.of(context).colorScheme.primary;
+
+    bool userAttends =
+        event.participants
+            .where((user) => user.username == loggedUser.username)
+            .toList()
+            .isNotEmpty;
 
     return Card(
       child: Column(
         children: [
-          Hero(
-            tag: "event_image${event.id}",
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12.0),
-              child:
-                  image != null
-                      ? SizedBox(
-                        width: double.infinity,
-                        child: Image.asset(image, fit: BoxFit.cover),
-                      )
-                      : Container(
-                        height: 200,
-                        width: double.infinity,
-                        color: Colors.black38,
-                        child: Center(
-                          child: Text(
-                            "No image available",
-                            style: TextStyle(fontSize: 25),
-                          ),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12.0),
+            child:
+                thumbnailSrc.isNotEmpty
+                    ? SizedBox(
+                      width: double.infinity,
+                      child: Image.asset(thumbnailSrc, fit: BoxFit.cover),
+                    )
+                    : Container(
+                      height: 200,
+                      width: double.infinity,
+                      color: Colors.black38,
+                      child: Center(
+                        child: Text(
+                          "No image available",
+                          style: TextStyle(fontSize: 25),
                         ),
                       ),
-            ),
+                    ),
           ),
           SizedBox(height: 10.0),
           Text(title, style: AppTextStyle(context: context).eventCardTitleText),
@@ -125,29 +138,45 @@ class EventCardWidget extends StatelessWidget {
                           context,
                           MaterialPageRoute(
                             builder: (context) {
-                              return EventDetailsPage(event: event);
+                              return EventDetailsPage(eventId: event.id);
                             },
                           ),
                         );
                       },
                       child: Text("Details"),
                     ),
-                    TextButton(
-                      onPressed:
-                          event.openStatus
-                              ? () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) {
-                                      return JoinEventPage(event: event);
-                                    },
-                                  ),
-                                );
-                              }
-                              : null,
-                      child: Text("Join"),
-                    ),
+                    userAttends
+                        ? TextButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) {
+                                  return EventLobbyPage(eventId: event.id);
+                                },
+                              ),
+                            );
+                          },
+                          child: Text("Enter"),
+                        )
+                        : TextButton(
+                          onPressed:
+                              event.openStatus
+                                  ? () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) {
+                                          return JoinEventPage(
+                                            eventId: event.id,
+                                          );
+                                        },
+                                      ),
+                                    );
+                                  }
+                                  : null,
+                          child: Text("Join"),
+                        ),
                   ],
                 ),
               ],

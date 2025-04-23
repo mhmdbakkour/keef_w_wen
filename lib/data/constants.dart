@@ -151,7 +151,7 @@ class AppTextStyle {
     fontWeight: FontWeight.w500,
   );
   static const TextStyle joinEventDescription = TextStyle(
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: FontWeight.w300,
   );
   static const TextStyle joinEventHeadline = TextStyle(
@@ -160,20 +160,36 @@ class AppTextStyle {
   );
 
   //Event Lobby Page
-  static const TextStyle countdownTitle = TextStyle(
+  TextStyle get countdownTitle => TextStyle(
     fontSize: 18,
     fontWeight: FontWeight.w500,
+    color: Theme.of(context).colorScheme.onSecondaryContainer,
   );
-  static const TextStyle countdownNumbers = TextStyle(
+  TextStyle get countdownNumbers => TextStyle(
     fontSize: 20,
     fontWeight: FontWeight.bold,
+    color: Theme.of(context).colorScheme.onSecondaryContainer,
   );
-  static const TextStyle countdownLabels = TextStyle(
+  TextStyle get countdownLabels => TextStyle(
     fontSize: 12,
     fontWeight: FontWeight.w300,
+    color: Theme.of(context).colorScheme.onSecondaryContainer,
   );
-  static const TextStyle feedTileTitle = TextStyle(
-    fontSize: 12,
+  TextStyle get eventLobbyCardTitle => TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.bold,
+    color: Theme.of(context).colorScheme.primary,
+  );
+  static const eventLobbyCardLocation = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w600,
+  );
+  static const eventLobbyCardOrganizer = TextStyle(
+    fontSize: 13,
+    fontWeight: FontWeight.w500,
+  );
+  static const eventLobbyCardDate = TextStyle(
+    fontSize: 14,
     fontWeight: FontWeight.w300,
   );
 }

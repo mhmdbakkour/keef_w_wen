@@ -6,6 +6,9 @@ import 'package:keef_w_wen/views/widgets/user_brief_widget.dart';
 import '../../classes/data/event.dart';
 import '../../classes/data/user.dart';
 import '../widgets/event_swatch_widget.dart';
+import '../widgets/event_tab_widget.dart';
+
+enum EventFilter { saved, liked, hosted, owned }
 
 class ProfilePage extends ConsumerStatefulWidget {
   const ProfilePage({super.key});
@@ -21,7 +24,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       builder: (context, ref, child) {
         List<Event> events = ref.watch(eventProvider).events;
         List<User> users = ref.watch(userProvider).users;
-        User? loggedUser = ref.watch(loggedUserProvider).user;
+        User loggedUser = ref.watch(loggedUserProvider).user;
 
         if (events.isEmpty) {
           return Center(child: Text("No events available."));
@@ -35,12 +38,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             return [
               SliverToBoxAdapter(
                 child: Container(
-                  // color: Theme.of(context).colorScheme.surface,
-                  // padding: EdgeInsets.all(16),
-                  // margin: EdgeInsets.symmetric(horizontal: 16),
-                  // decoration: BoxDecoration(
-                  //   borderRadius: BorderRadius.circular(20),
-                  // ),
                   padding: EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color:
@@ -51,26 +48,33 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   ),
                   child: Column(
                     children: [
-                      loggedUser != null
+                      loggedUser.profileSource != null &&
+                              loggedUser.profileSource!.isNotEmpty
                           ? CircleAvatar(
                             radius: 50,
                             backgroundImage: AssetImage(
-                              loggedUser.profileSource ?? "",
+                              loggedUser.profileSource!,
                             ),
                           )
                           : CircleAvatar(
                             radius: 50,
                             backgroundColor:
                                 Theme.of(context).colorScheme.primary,
+                            child: Text(
+                              loggedUser.fullname[0],
+                              style: TextStyle(fontSize: 30),
+                            ),
                           ),
                       SizedBox(height: 10),
                       Text(
-                        loggedUser != null ? loggedUser.fullname : "EMPTY!",
+                        loggedUser.fullname.isNotEmpty
+                            ? loggedUser.fullname
+                            : "No user :(",
                         style: AppTextStyle.profileFullname,
                       ),
                       SizedBox(height: 5),
                       _buildUserBio(
-                        loggedUser != null
+                        loggedUser.bio.isNotEmpty
                             ? loggedUser.bio
                             : "Bio goes here...",
                       ),
@@ -80,21 +84,15 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                         children: [
                           _infoTile(
                             "Events",
-                            loggedUser != null
-                                ? loggedUser.ownedEvents.length.toString()
-                                : "0",
+                            loggedUser.participatedEvents.length.toString(),
                           ),
                           _infoTile(
                             "Followers",
-                            loggedUser != null
-                                ? loggedUser.followers.length.toString()
-                                : "0",
+                            loggedUser.followers.length.toString(),
                           ),
                           _infoTile(
                             "Following",
-                            loggedUser != null
-                                ? loggedUser.following.length.toString()
-                                : "0",
+                            loggedUser.following.length.toString(),
                           ),
                         ],
                       ),
@@ -120,19 +118,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   child: TabBarView(
                     physics: NeverScrollableScrollPhysics(),
                     children: [
-                      _userEvents(
-                        loggedUser != null
-                            ? events
-                                .where(
-                                  (event) =>
-                                      loggedUser.ownedEvents.contains(event.id),
-                                )
-                                .toList()
-                            : [],
-
-                        // events
-                      ),
-                      _userFollowers(loggedUser!, users),
+                      EventTabWidget(),
+                      _userFollowers(loggedUser, users),
                       _userFollowing(loggedUser, users),
                     ],
                   ),
@@ -193,7 +180,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       itemBuilder: (context, index) {
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: EventSwatchWidget(event: events[index]),
+          child: EventSwatchWidget(eventId: events[index].id),
         );
       },
     );

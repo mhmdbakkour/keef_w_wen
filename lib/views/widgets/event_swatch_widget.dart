@@ -1,16 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:keef_w_wen/classes/providers.dart';
 import 'package:keef_w_wen/data/constants.dart';
 
 import '../../classes/data/event.dart';
 import '../pages/event_details_page.dart';
 
-class EventSwatchWidget extends StatelessWidget {
-  const EventSwatchWidget({super.key, required this.event});
+class EventSwatchWidget extends ConsumerWidget {
+  const EventSwatchWidget({super.key, required this.eventId});
 
-  final Event event;
+  final String eventId;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final Event? event = ref.watch(singleEventProvider(eventId));
+
+    if (event == null) {
+      return const Center(child: Text("Event not found"));
+    }
+
     return Card(
       surfaceTintColor: Theme.of(context).colorScheme.surfaceTint,
       child: Padding(
@@ -55,7 +63,7 @@ class EventSwatchWidget extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                     builder: (context) {
-                      return EventDetailsPage(event: event);
+                      return EventDetailsPage(eventId: event.id);
                     },
                   ),
                 );

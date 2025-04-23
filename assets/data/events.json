@@ -20,6 +20,7 @@
     "price": 50,
     "openStatus": true,
     "tags": ["Music", "Indoor", "Party"],
+    "likedUsers": ["@janedoe"],
     "participants": [
       {"username": "@lebtivitylebanon", "isHost": true, "isOwner":  true},
       { "username": "@janedoe", "isHost":  true},
@@ -120,8 +121,8 @@
     "isPrivate": false,
     "needsId": false,
     "dateCreated": "2025-02-10T00:00:00Z",
-    "dateStart": "2025-05-05T07:00:00Z",
-    "dateClosed": "2025-05-07T00:00:00Z",
+    "dateStart": "2025-04-16T12:00:00Z",
+    "dateClosed": "2025-04-17T00:00:00Z",
     "seats": 2,
     "price": 15,
     "openStatus": true,

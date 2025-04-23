@@ -65,7 +65,7 @@ class ViewProfilePage extends ConsumerWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _infoTile("Events", user.ownedEvents.length.toString()),
+          _infoTile("Events", user.participatedEvents.length.toString()),
           _infoTile("Followers", user.followers.length.toString()),
           _infoTile("Following", user.following.length.toString()),
         ],
@@ -124,7 +124,9 @@ class ViewProfilePage extends ConsumerWidget {
     List<Event> events,
   ) {
     final publicEvents =
-        events.where((event) => user.ownedEvents.contains(event.id)).toList();
+        events
+            .where((event) => user.participatedEvents.contains(event.id))
+            .toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -163,7 +165,7 @@ class ViewProfilePage extends ConsumerWidget {
                       horizontal: 8,
                       vertical: 4,
                     ),
-                    child: EventCardWidget(event: event),
+                    child: EventCardWidget(eventId: event.id),
                   );
                 }).toList(),
           ),

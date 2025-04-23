@@ -56,6 +56,102 @@ class EventNotifier extends StateNotifier<EventState> {
     );
   }
 
+  Future<void> removeParticipant(String eventId, String username) async {
+    final eventIndex = state.events.indexWhere((e) => e.id == eventId);
+    if (eventIndex == -1) {
+      throw ArgumentError("Event not found");
+    }
+
+    final event = state.events[eventIndex];
+    final participant = event.participants.firstWhere(
+      (p) => p.username == username,
+      orElse: () => throw ArgumentError("Participant not found"),
+    );
+
+    if (participant.isOwner == true) {
+      throw ArgumentError("Cannot remove the event owner.");
+    }
+
+    if (participant.isHost == true &&
+        event.participants
+            .where((x) => x.isHost == true && x.username != username)
+            .isEmpty) {
+      throw ArgumentError("There must be at least one host remaining.");
+    }
+
+    final updated = event.copyWith(
+      participants:
+          event.participants.where((x) => x.username != username).toList(),
+    );
+    final newList = [...state.events]..[eventIndex] = updated;
+    state = state.copyWith(events: newList);
+  }
+
+  Future<void> addParticipant(String eventId, String username) async {
+    final eventIndex = state.events.indexWhere((e) => e.id == eventId);
+    if (eventIndex == -1) {
+      throw ArgumentError("Event not found");
+    }
+
+    final event = state.events[eventIndex];
+
+    // Check if the user is already a participant
+    if (event.participants.any((user) => user.username == username)) {
+      throw ArgumentError('User already joined the event');
+    }
+
+    // Check if the event is open to join
+    if (!event.openStatus) {
+      throw ArgumentError('Event is not open for joining');
+    }
+
+    // Add the participant
+    final updated = event.copyWith(
+      participants: [...event.participants, Participant(username: username)],
+    );
+
+    final newList = [...state.events]..[eventIndex] = updated;
+
+    // Update the state with the new event
+    state = state.copyWith(events: newList);
+  }
+
+  Future<void> toggleLike(String eventId, String username) async {
+    final index = state.events.indexWhere((e) => e.id == eventId);
+    if (index == -1) return;
+
+    final event = state.events[index];
+    final hasLiked = event.likedUsers.contains(username);
+
+    final updatedEvent = event.copyWith(
+      likedUsers:
+          hasLiked
+              ? event.likedUsers.where((u) => u != username).toList()
+              : [...event.likedUsers, username],
+    );
+
+    state.events[index] = updatedEvent;
+    state = state.copyWith(events: state.events);
+  }
+
+  Future<void> toggleSave(String eventId, String username) async {
+    final index = state.events.indexWhere((e) => e.id == eventId);
+    if (index == -1) return;
+
+    final event = state.events[index];
+    final hasLiked = event.savedUsers.contains(username);
+
+    final updatedEvent = event.copyWith(
+      savedUsers:
+          hasLiked
+              ? event.savedUsers.where((u) => u != username).toList()
+              : [...event.savedUsers, username],
+    );
+
+    state.events[index] = updatedEvent;
+    state = state.copyWith(events: state.events);
+  }
+
   Future<void> fetchEvents() async {
     state = state.copyWith(isLoading: true);
 

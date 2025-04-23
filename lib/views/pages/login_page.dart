@@ -16,7 +16,7 @@ class LoginPage extends ConsumerStatefulWidget {
 
 class _LoginPageState extends ConsumerState<LoginPage> {
   TextEditingController controllerUsername = TextEditingController(
-    text: "@janedoe",
+    text: "janedoe",
   );
   TextEditingController controllerPassword = TextEditingController(
     text: "password",
@@ -78,7 +78,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             final List<User> users =
                                 ref.read(userProvider).users;
                             final matches = users.where(
-                              (u) => u.username == controllerUsername.text,
+                              (u) =>
+                                  u.username == "@${controllerUsername.text}",
                             );
                             if (matches.isNotEmpty) {
                               final matchedUser = matches.first;

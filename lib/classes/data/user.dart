@@ -7,7 +7,7 @@ class User {
   String? profileSource;
   List<String> followers;
   List<String> following;
-  List<String> ownedEvents;
+  List<String> participatedEvents;
   List<String> likedEvents;
   List<String> savedEvents;
 
@@ -20,7 +20,7 @@ class User {
     required this.mobileNumber,
     required this.followers,
     required this.following,
-    required this.ownedEvents,
+    required this.participatedEvents,
     required this.likedEvents,
     required this.savedEvents,
   });
@@ -35,9 +35,25 @@ class User {
       mobileNumber: json['mobileNumber'] ?? 0,
       followers: List<String>.from(json['followers'] ?? []),
       following: List<String>.from(json['following'] ?? []),
-      ownedEvents: List<String>.from(json['ownedEvents'] ?? []),
+      participatedEvents: List<String>.from(json['participatedEvents'] ?? []),
       likedEvents: List<String>.from(json['likedEvents'] ?? []),
       savedEvents: List<String>.from(json['savedEvents'] ?? []),
+    );
+  }
+
+  factory User.empty() {
+    return User(
+      username: '',
+      fullname: '',
+      email: '',
+      bio: '',
+      profileSource: '',
+      mobileNumber: 0,
+      followers: [],
+      following: [],
+      participatedEvents: [],
+      likedEvents: [],
+      savedEvents: [],
     );
   }
 
@@ -51,9 +67,37 @@ class User {
       'mobileNumber': mobileNumber,
       'followers': followers,
       'following': following,
-      'ownedEvents': ownedEvents,
+      'participatedEvents': participatedEvents,
       'likedEvents': likedEvents,
       'savedEvents': savedEvents,
     };
+  }
+
+  User copyWith({
+    String? username,
+    String? fullname,
+    String? email,
+    String? bio,
+    String? profileSource,
+    int? mobileNumber,
+    List<String>? followers,
+    List<String>? following,
+    List<String>? participatedEvents,
+    List<String>? likedEvents,
+    List<String>? savedEvents,
+  }) {
+    return User(
+      username: username ?? this.username,
+      fullname: fullname ?? this.fullname,
+      email: email ?? this.email,
+      bio: bio ?? this.bio,
+      profileSource: profileSource ?? this.profileSource,
+      mobileNumber: mobileNumber ?? this.mobileNumber,
+      followers: followers ?? this.followers,
+      following: following ?? this.following,
+      participatedEvents: participatedEvents ?? this.participatedEvents,
+      likedEvents: likedEvents ?? this.likedEvents,
+      savedEvents: savedEvents ?? this.savedEvents,
+    );
   }
 }

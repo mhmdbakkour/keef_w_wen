@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:keef_w_wen/views/pages/view_profile_page.dart';
-
 import '../../classes/data/event.dart';
 import '../../classes/data/participant.dart';
 import '../../classes/data/user.dart';

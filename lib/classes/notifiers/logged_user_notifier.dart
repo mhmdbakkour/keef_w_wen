@@ -3,13 +3,13 @@ import '../states/logged_user_state.dart';
 import '../data/user.dart';
 
 class LoggedUserNotifier extends StateNotifier<LoggedUserState> {
-  LoggedUserNotifier() : super(LoggedUserState());
+  LoggedUserNotifier() : super(LoggedUserState(user: User.empty()));
 
   void setUser(User user) {
     state = state.copyWith(user: user);
   }
 
   void clearUser() {
-    state = LoggedUserState();
+    state = LoggedUserState(user: User.empty());
   }
 }

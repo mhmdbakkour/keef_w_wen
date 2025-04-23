@@ -1,29 +1,38 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:keef_w_wen/data/constants.dart';
 
 import '../../classes/data/event.dart';
+import '../../classes/data/user.dart';
+import '../../classes/providers.dart';
 import '../pages/event_details_page.dart';
 
-class EventCardBriefWidget extends StatefulWidget {
-  const EventCardBriefWidget({super.key, required this.event});
+class EventCardBriefWidget extends ConsumerStatefulWidget {
+  const EventCardBriefWidget({super.key, required this.eventId});
 
-  final Event event;
+  final String eventId;
 
   @override
-  State<EventCardBriefWidget> createState() => _EventCardBriefWidgetState();
+  ConsumerState<EventCardBriefWidget> createState() =>
+      _EventCardBriefWidgetState();
 }
 
-class _EventCardBriefWidgetState extends State<EventCardBriefWidget> {
-  bool hasLiked = false;
-
+class _EventCardBriefWidgetState extends ConsumerState<EventCardBriefWidget> {
   @override
   Widget build(BuildContext context) {
-    final Color iconColor = Theme.of(context).colorScheme.primary;
+    Event event = ref
+        .watch(eventProvider)
+        .events
+        .firstWhere((event) => event.id == widget.eventId);
+    User loggedUser = ref.watch(loggedUserProvider).user;
+    final Color primaryColor = Theme.of(context).colorScheme.primary;
+
+    bool hasLiked = event.likedUsers.contains(loggedUser.username);
+    bool hasSaved = event.savedUsers.contains(loggedUser.username);
 
     //Event Data
-    final String title = widget.event.title;
-    final String thumbnailSrc = widget.event.thumbnailSrc;
-
+    final String title = event.title;
+    final String thumbnailSrc = event.thumbnailSrc;
     return Card(
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
@@ -53,43 +62,61 @@ class _EventCardBriefWidgetState extends State<EventCardBriefWidget> {
                         context,
                         MaterialPageRoute(
                           builder: (context) {
-                            return EventDetailsPage(event: widget.event);
+                            return EventDetailsPage(eventId: event.id);
                           },
                         ),
                       );
                     },
-                    icon: Icon(Icons.info, color: iconColor),
+                    icon: Icon(Icons.info, color: primaryColor),
                   ),
-                  IconButton(
-                    padding: EdgeInsets.zero,
-                    onPressed: () {
-                      setState(() {
-                        hasLiked = !hasLiked;
-                        if (hasLiked) {
-                          widget.event.likes++;
-                        } else {
-                          if (widget.event.likes >= 0) {
-                            widget.event.likes--;
-                          } else {
-                            widget.event.likes = 0;
-                          }
-                        }
-                      });
-                    },
-                    icon: Icon(
-                      hasLiked ? Icons.favorite : Icons.favorite_outline,
-                      color: iconColor,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        padding: EdgeInsets.zero,
+                        visualDensity: VisualDensity.compact,
+                        onPressed: () {
+                          ref
+                              .read(eventProvider.notifier)
+                              .toggleLike(event.id, loggedUser.username);
+                        },
+                        icon: Icon(
+                          hasLiked ? Icons.favorite : Icons.favorite_outline,
+                          color: primaryColor,
+                        ),
+                      ),
+                      Text(
+                        event.likedUsers.length.toString(),
+                        style: TextStyle(color: primaryColor),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        padding: EdgeInsets.zero,
+                        visualDensity: VisualDensity.compact,
+                        onPressed: () {
+                          ref
+                              .read(eventProvider.notifier)
+                              .toggleSave(event.id, loggedUser.username);
+                        },
+                        icon: Icon(
+                          hasSaved ? Icons.bookmark : Icons.bookmark_outline,
+                          color: primaryColor,
+                        ),
+                      ),
+                      Text(
+                        event.savedUsers.length.toString(),
+                        style: TextStyle(color: primaryColor),
+                      ),
+                    ],
                   ),
                   IconButton(
                     padding: EdgeInsets.zero,
                     onPressed: () {},
-                    icon: Icon(Icons.bookmark_outline, color: iconColor),
-                  ),
-                  IconButton(
-                    padding: EdgeInsets.zero,
-                    onPressed: () {},
-                    icon: Icon(Icons.share, color: iconColor),
+                    icon: Icon(Icons.share, color: primaryColor),
                   ),
                 ],
               ),
