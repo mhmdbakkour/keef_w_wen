@@ -20,7 +20,8 @@ class _CreateEventPageState extends State<CreateEventPage> {
   TimeOfDay? _selectedTimeStart;
   TimeOfDay? _selectedTimeClosed;
   TimeOfDay? _selectedTimeEnd;
-  bool _selectedImage = false;
+  String? _selectedThumbnailSrc;
+  List<String>? _selectedImagesSrc;
   bool _isPrivate = false;
   final List<String> _tags = AppConstants.eventTags;
 
@@ -52,7 +53,6 @@ class _CreateEventPageState extends State<CreateEventPage> {
   }
 
   void _pickImage() async {
-    _selectedImage = true;
     AssetImage? imageSource = await showDialog(
       context: context,
       builder: (context) {
@@ -80,10 +80,14 @@ class _CreateEventPageState extends State<CreateEventPage> {
           children: [
             TextField(
               controller: _eventTitleController,
+              maxLength: 20,
               decoration: InputDecoration(
-                labelText: "Event Name",
+                labelText: "Title",
                 prefixIcon: Icon(Icons.edit),
               ),
+              onTapOutside: (event) {
+                FocusScope.of(context).unfocus();
+              },
             ),
             SizedBox(height: 10),
             TextField(
@@ -93,6 +97,9 @@ class _CreateEventPageState extends State<CreateEventPage> {
                 prefixIcon: Icon(Icons.description),
               ),
               maxLength: 50,
+              onTapOutside: (event) {
+                FocusScope.of(context).unfocus();
+              },
             ),
             SizedBox(height: 10),
             TagSelector(tags: _tags, onSelectionChanged: (tag) {}),
@@ -181,10 +188,23 @@ class _CreateEventPageState extends State<CreateEventPage> {
                 ),
               ],
             ),
-            ListTile(
-              title: Text("Event Image"),
-              leading: Icon(Icons.image),
-              onTap: _pickImage,
+            Row(
+              children: [
+                Flexible(
+                  child: ListTile(
+                    title: Text("Thumbnail"),
+                    leading: Icon(Icons.image),
+                    onTap: _pickImage,
+                  ),
+                ),
+                Flexible(
+                  child: ListTile(
+                    title: Text("Images"),
+                    leading: Icon(Icons.collections),
+                    onTap: _pickImage,
+                  ),
+                ),
+              ],
             ),
             SizedBox(height: 10),
             SwitchListTile(
@@ -193,7 +213,10 @@ class _CreateEventPageState extends State<CreateEventPage> {
                 _isPrivate
                     ? "Private events require invites to add participants."
                     : " Public events can be viewed by anyone.",
-                style: TextStyle(color: Colors.black26, fontSize: 12),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface.withAlpha(100),
+                  fontSize: 12,
+                ),
               ),
               value: _isPrivate,
               onChanged: (value) {

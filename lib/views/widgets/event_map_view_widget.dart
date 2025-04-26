@@ -2,10 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
+import 'event_marker_widget.dart';
+
 class EventMapView extends StatefulWidget {
   final LatLng coordinates;
+  final String title;
+  final String thumbnailSrc;
 
-  const EventMapView({super.key, required this.coordinates});
+  const EventMapView({
+    super.key,
+    required this.title,
+    required this.coordinates,
+    required this.thumbnailSrc,
+  });
 
   @override
   State<EventMapView> createState() => _EventMapViewState();
@@ -88,17 +97,12 @@ class _EventMapViewState extends State<EventMapView> {
             ),
             MarkerLayer(
               markers: [
-                Marker(
-                  rotate: true,
-                  alignment: Alignment.topCenter,
-                  point: widget.coordinates,
-                  width: 45,
-                  height: 45,
-                  child: Icon(
-                    Icons.location_pin,
-                    color: Theme.of(context).colorScheme.primaryContainer,
-                    size: 45,
-                  ),
+                EventMarker(
+                  title: widget.title,
+                  coordinates: widget.coordinates,
+                  thumbnailUrl: widget.thumbnailSrc,
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  onTap: () {},
                 ),
               ],
             ),

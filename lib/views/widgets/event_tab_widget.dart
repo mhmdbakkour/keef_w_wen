@@ -13,7 +13,7 @@ class EventTabWidget extends ConsumerStatefulWidget {
 }
 
 class _EventTabState extends ConsumerState<EventTabWidget> {
-  String eventFilter = "Owned Events"; // Default filter
+  String eventFilter = "Saved Events"; // Default filter
 
   @override
   Widget build(BuildContext context) {

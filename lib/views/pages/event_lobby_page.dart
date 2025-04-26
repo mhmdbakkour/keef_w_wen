@@ -343,7 +343,11 @@ class _EventLobbyPageState extends ConsumerState<EventLobbyPage> {
         margin: EdgeInsets.zero,
         child: ClipRRect(
           borderRadius: BorderRadius.circular(12),
-          child: EventMapView(coordinates: event.coordinates),
+          child: EventMapView(
+            title: event.title,
+            thumbnailSrc: event.thumbnailSrc,
+            coordinates: event.coordinates,
+          ),
         ),
       ),
     );

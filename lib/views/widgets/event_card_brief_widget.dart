@@ -79,6 +79,11 @@ class _EventCardBriefWidgetState extends ConsumerState<EventCardBriefWidget> {
                           ref
                               .read(eventProvider.notifier)
                               .toggleLike(event.id, loggedUser.username);
+                          if (hasLiked) {
+                            loggedUser.likedEvents.remove(event.id);
+                          } else {
+                            loggedUser.likedEvents.add(event.id);
+                          }
                         },
                         icon: Icon(
                           hasLiked ? Icons.favorite : Icons.favorite_outline,
@@ -101,6 +106,11 @@ class _EventCardBriefWidgetState extends ConsumerState<EventCardBriefWidget> {
                           ref
                               .read(eventProvider.notifier)
                               .toggleSave(event.id, loggedUser.username);
+                          if (hasSaved) {
+                            loggedUser.savedEvents.remove(event.id);
+                          } else {
+                            loggedUser.savedEvents.add(event.id);
+                          }
                         },
                         icon: Icon(
                           hasSaved ? Icons.bookmark : Icons.bookmark_outline,

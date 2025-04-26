@@ -5,8 +5,8 @@ import 'package:keef_w_wen/data/constants.dart';
 import 'package:keef_w_wen/views/widgets/user_brief_widget.dart';
 import '../../classes/data/event.dart';
 import '../../classes/data/user.dart';
-import '../widgets/event_swatch_widget.dart';
 import '../widgets/event_tab_widget.dart';
+import 'package:http/http.dart' as http;
 
 enum EventFilter { saved, liked, hosted, owned }
 
@@ -110,8 +110,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 TabBar(
                   tabs: [
                     Tab(icon: Icon(Icons.event), text: "Events"),
-                    Tab(icon: Icon(Icons.add_circle), text: "Followers"),
-                    Tab(icon: Icon(Icons.directions_walk), text: "Following"),
+                    Tab(icon: Icon(Icons.person_add), text: "Followers"),
+                    Tab(icon: Icon(Icons.people), text: "Following"),
                   ],
                 ),
                 Expanded(
@@ -148,7 +148,17 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           ElevatedButton.icon(
-            onPressed: () {},
+            onPressed: () async {
+              const String baseUrl = "http://192.168.1.108:8000";
+              try {
+                final response = await http.get(
+                  Uri.parse('$baseUrl/api/users/'),
+                );
+                print(response.body);
+              } on Exception catch (e) {
+                print("Exception: $e");
+              }
+            },
             icon: Icon(Icons.edit),
             label: Text("Edit Profile"),
           ),
@@ -170,19 +180,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         textAlign: TextAlign.center,
         style: AppTextStyle.profileBio,
       ),
-    );
-  }
-
-  Widget _userEvents(List<Event> events) {
-    return ListView.builder(
-      physics: NeverScrollableScrollPhysics(),
-      itemCount: events.length,
-      itemBuilder: (context, index) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: EventSwatchWidget(eventId: events[index].id),
-        );
-      },
     );
   }
 

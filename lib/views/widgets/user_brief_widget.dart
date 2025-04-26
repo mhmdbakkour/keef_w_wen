@@ -36,7 +36,7 @@ class UserBriefWidget extends ConsumerWidget {
         onSelected: (value) {
           switch (value) {
             case 'view':
-              if (loggedUser != null && user.username == loggedUser.username) {
+              if (user.username == loggedUser.username) {
                 Navigator.popUntil(context, ModalRoute.withName('/main'));
                 selectedPageNotifier.value = 4;
               } else {
@@ -53,21 +53,33 @@ class UserBriefWidget extends ConsumerWidget {
             case 'message':
               print('Send message to ${user.username}');
               break;
-            case 'request':
-              print('Request ${user.username}');
+            case 'follow':
+              print('Followed ${user.username}');
               break;
           }
         },
         itemBuilder:
             (BuildContext context) => <PopupMenuEntry<String>>[
-              PopupMenuItem<String>(value: 'view', child: Text('View Profile')),
               PopupMenuItem<String>(
-                value: 'message',
-                child: Text('Send Message'),
+                value: 'view',
+                child: ListTile(
+                  leading: Icon(Icons.person),
+                  title: Text('View Profile'),
+                ),
               ),
               PopupMenuItem<String>(
-                value: 'request',
-                child: Text('Friend request'),
+                value: 'message',
+                child: ListTile(
+                  leading: Icon(Icons.message),
+                  title: Text('Send Message'),
+                ),
+              ),
+              PopupMenuItem<String>(
+                value: 'follow',
+                child: ListTile(
+                  leading: Icon(Icons.person_add),
+                  title: Text('Follow'),
+                ),
               ),
             ],
       ),
