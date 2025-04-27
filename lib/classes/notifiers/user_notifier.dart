@@ -1,14 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:keef_w_wen/services/storage_service.dart';
+import 'package:keef_w_wen/classes/repositories/user_repository.dart';
 
 import '../data/user.dart';
 import '../states/user_state.dart';
 
 class UserNotifier extends StateNotifier<UserState> {
-  final StorageService storageService;
+  final UserRepository repository;
 
-  UserNotifier(this.storageService)
-    : super(UserState(users: [], isLoading: false));
+  UserNotifier(this.repository) : super(UserState(users: [], isLoading: false));
 
   void addUser(User user) {
     state = state.copyWith(users: [...state.users, user]);
@@ -37,7 +36,7 @@ class UserNotifier extends StateNotifier<UserState> {
     state = state.copyWith(isLoading: true);
 
     try {
-      List<User> users = await storageService.readUsersFromFile();
+      List<User> users = await repository.fetchRemoteUsers();
       state = state.copyWith(users: users, isLoading: false);
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());

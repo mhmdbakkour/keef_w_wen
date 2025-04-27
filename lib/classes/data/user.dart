@@ -1,28 +1,26 @@
+import 'location.dart';
+
 class User {
   final String username;
   String fullname;
   final String email;
   String bio;
-  int mobileNumber;
-  String? profileSource;
+  String mobileNumber;
+  String? profilePicture;
   List<String> followers;
   List<String> following;
-  List<String> participatedEvents;
-  List<String> likedEvents;
-  List<String> savedEvents;
+  Location location;
 
   User({
     required this.username,
     required this.fullname,
     required this.email,
     required this.bio,
-    required this.profileSource,
+    required this.profilePicture,
     required this.mobileNumber,
     required this.followers,
     required this.following,
-    required this.participatedEvents,
-    required this.likedEvents,
-    required this.savedEvents,
+    required this.location,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -31,13 +29,11 @@ class User {
       fullname: json['fullname'] ?? '',
       email: json['email'] ?? '',
       bio: json['bio'] ?? '',
-      profileSource: json['profileSource'] ?? '',
-      mobileNumber: json['mobileNumber'] ?? 0,
+      profilePicture: json['profile_picture'] ?? '',
+      mobileNumber: json['mobile_number'] ?? '',
       followers: List<String>.from(json['followers'] ?? []),
       following: List<String>.from(json['following'] ?? []),
-      participatedEvents: List<String>.from(json['participatedEvents'] ?? []),
-      likedEvents: List<String>.from(json['likedEvents'] ?? []),
-      savedEvents: List<String>.from(json['savedEvents'] ?? []),
+      location: Location.fromJson(json['location'] ?? {}),
     );
   }
 
@@ -47,13 +43,11 @@ class User {
       fullname: '',
       email: '',
       bio: '',
-      profileSource: '',
-      mobileNumber: 0,
+      profilePicture: '',
+      mobileNumber: '',
       followers: [],
       following: [],
-      participatedEvents: [],
-      likedEvents: [],
-      savedEvents: [],
+      location: Location.empty(),
     );
   }
 
@@ -63,13 +57,11 @@ class User {
       'fullname': fullname,
       'email': email,
       'bio': bio,
-      'profileSource': profileSource,
-      'mobileNumber': mobileNumber,
+      'profile_picture': profilePicture,
+      'mobile_number': mobileNumber,
       'followers': followers,
       'following': following,
-      'participatedEvents': participatedEvents,
-      'likedEvents': likedEvents,
-      'savedEvents': savedEvents,
+      'location': location.toJson(),
     };
   }
 
@@ -78,26 +70,22 @@ class User {
     String? fullname,
     String? email,
     String? bio,
-    String? profileSource,
-    int? mobileNumber,
+    String? profilePicture,
+    String? mobileNumber,
     List<String>? followers,
     List<String>? following,
-    List<String>? participatedEvents,
-    List<String>? likedEvents,
-    List<String>? savedEvents,
+    Location? location,
   }) {
     return User(
       username: username ?? this.username,
       fullname: fullname ?? this.fullname,
       email: email ?? this.email,
       bio: bio ?? this.bio,
-      profileSource: profileSource ?? this.profileSource,
+      profilePicture: profilePicture ?? this.profilePicture,
       mobileNumber: mobileNumber ?? this.mobileNumber,
       followers: followers ?? this.followers,
       following: following ?? this.following,
-      participatedEvents: participatedEvents ?? this.participatedEvents,
-      likedEvents: likedEvents ?? this.likedEvents,
-      savedEvents: savedEvents ?? this.savedEvents,
+      location: location ?? this.location,
     );
   }
 }

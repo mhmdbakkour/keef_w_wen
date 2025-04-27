@@ -6,7 +6,7 @@ import 'package:keef_w_wen/views/pages/create_event_page.dart';
 import '../../classes/data/event.dart';
 import '../widgets/event_card_brief_widget.dart';
 
-enum SortType { distance, price, rating, time }
+enum SortType { price, rating, time }
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -66,7 +66,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                 "Nearby Events",
                 Icon(Icons.near_me),
                 headingColor,
-                SortType.distance,
+                SortType.price,
               ),
               _buildEventSection(
                 "Cost-saving Events",
@@ -137,9 +137,6 @@ class _HomePageState extends ConsumerState<HomePage> {
   ) {
     List<Event> sortedEvents = List.from(events);
     switch (sortBy) {
-      case SortType.distance:
-        sortedEvents.sort((a, b) => a.distance.compareTo(b.distance));
-        break;
       case SortType.price:
         sortedEvents.sort((a, b) => a.price.compareTo(b.price));
         break;

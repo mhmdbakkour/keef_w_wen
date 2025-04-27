@@ -4,7 +4,7 @@ import '../classes/data/event.dart';
 import '../classes/data/user.dart';
 
 class StorageService {
-  Future<List<User>> readUsersFromFile() async {
+  Future<List<User>> fetchUsersFromFile() async {
     try {
       // Load JSON file from the assets
       String jsonString = await rootBundle.loadString("assets/data/users.json");

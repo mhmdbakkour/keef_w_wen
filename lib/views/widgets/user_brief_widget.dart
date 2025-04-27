@@ -18,10 +18,10 @@ class UserBriefWidget extends ConsumerWidget {
     return ListTile(
       contentPadding: EdgeInsets.only(right: 4, left: 10),
       leading:
-          user.profileSource != null && user.profileSource!.isNotEmpty
+          user.profilePicture != null && user.profilePicture!.isNotEmpty
               ? CircleAvatar(
                 radius: 25,
-                backgroundImage: AssetImage(user.profileSource!),
+                backgroundImage: NetworkImage(user.profilePicture!),
               )
               : CircleAvatar(
                 radius: 25,

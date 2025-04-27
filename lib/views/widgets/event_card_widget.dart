@@ -24,7 +24,7 @@ class EventCardWidget extends ConsumerWidget {
 
     final String title = event.title;
     final String description = event.description;
-    final String thumbnailSrc = event.thumbnailSrc;
+    final String thumbnail = event.thumbnail;
     final double rating = event.rating;
     final Color iconColor = Theme.of(context).colorScheme.primary;
 
@@ -40,10 +40,10 @@ class EventCardWidget extends ConsumerWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(12.0),
             child:
-                thumbnailSrc.isNotEmpty
+                thumbnail.isNotEmpty
                     ? SizedBox(
                       width: double.infinity,
-                      child: Image.asset(thumbnailSrc, fit: BoxFit.cover),
+                      child: Image.network(thumbnail, fit: BoxFit.cover),
                     )
                     : Container(
                       height: 200,
@@ -77,7 +77,7 @@ class EventCardWidget extends ConsumerWidget {
                     Icon(Icons.location_pin, size: 17, color: iconColor),
                     SizedBox(width: 1),
                     Text(
-                      event.location,
+                      event.location.name,
                       style: AppTextStyle(context: context).eventCardData,
                     ),
                     VerticalDivider(),

@@ -1,17 +1,47 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:keef_w_wen/services/storage_service.dart';
+import 'package:keef_w_wen/classes/repositories/event_repository.dart';
 import '../data/event.dart';
 import '../states/event_state.dart';
 import '../data/participant.dart';
 
 class EventNotifier extends StateNotifier<EventState> {
-  final StorageService storageService;
+  final EventRepository repository;
 
-  EventNotifier(this.storageService)
+  EventNotifier(this.repository)
     : super(EventState(events: [], isLoading: false));
 
-  void addEvent(Event event) {
-    state = state.copyWith(events: [...state.events, event]);
+  Future<void> createEvent(Event event) async {
+    try {
+      await repository.createEvent(event);
+      state = state.copyWith(events: [...state.events, event]);
+    } catch (e) {
+      print("Could not create event. Error: $e");
+    }
+  }
+
+  Future<void> deleteEvent(String eventId) async {
+    try {
+      await repository.deleteEvent(eventId);
+      state = state.copyWith(
+        events: state.events.where((event) => event.id != eventId).toList(),
+      );
+    } catch (e) {
+      print("Could not delete event. Error: $e");
+    }
+  }
+
+  Future<void> updateEvent(Event updatedEvent) async {
+    try {
+      await repository.updateEvent(updatedEvent);
+      state = state.copyWith(
+        events: [
+          for (final event in state.events)
+            if (event.id == updatedEvent.id) updatedEvent else event,
+        ],
+      );
+    } catch (e) {
+      print('Could not update event. Error: $e');
+    }
   }
 
   bool validateEvent(Event event) {
@@ -39,21 +69,6 @@ class EventNotifier extends StateNotifier<EventState> {
       print('Validation error: $e');
       return false;
     }
-  }
-
-  void updateEventInfo(String eventId, Event updatedEvent) {
-    state = state.copyWith(
-      events: [
-        for (final event in state.events)
-          if (event.id == eventId) updatedEvent else event,
-      ],
-    );
-  }
-
-  void removeEvent(String eventId) {
-    state = state.copyWith(
-      events: state.events.where((event) => event.id != eventId).toList(),
-    );
   }
 
   Future<void> removeParticipant(String eventId, String username) async {
@@ -87,79 +102,88 @@ class EventNotifier extends StateNotifier<EventState> {
     state = state.copyWith(events: newList);
   }
 
-  Future<void> addParticipant(String eventId, String username) async {
-    final eventIndex = state.events.indexWhere((e) => e.id == eventId);
-    if (eventIndex == -1) {
-      throw ArgumentError("Event not found");
+  Future<void> createParticipant(String eventId, String username) async {
+    try {
+      final eventIndex = state.events.indexWhere((e) => e.id == eventId);
+      if (eventIndex == -1) {
+        throw ArgumentError("Event not found");
+      }
+
+      final event = state.events[eventIndex];
+      final Participant newParticipant = await repository.createParticipant(
+        eventId,
+        username,
+      );
+
+      // Check if the user is already a participant
+      if (event.participants.any((user) => user.username == username)) {
+        throw ArgumentError('User already joined the event');
+      }
+
+      // Check if the event is open to join
+      if (!event.openStatus) {
+        throw ArgumentError('Event is not open for joining');
+      }
+
+      // Add the participant
+      final updated = event.copyWith(
+        participants: [...event.participants, newParticipant],
+      );
+
+      final newList = [...state.events]..[eventIndex] = updated;
+
+      // Update the state with the new event
+      state = state.copyWith(events: newList);
+    } catch (e) {
+      throw Exception('Failed to create participant (frontend): $e');
     }
-
-    final event = state.events[eventIndex];
-
-    // Check if the user is already a participant
-    if (event.participants.any((user) => user.username == username)) {
-      throw ArgumentError('User already joined the event');
-    }
-
-    // Check if the event is open to join
-    if (!event.openStatus) {
-      throw ArgumentError('Event is not open for joining');
-    }
-
-    // Add the participant
-    final updated = event.copyWith(
-      participants: [...event.participants, Participant(username: username)],
-    );
-
-    final newList = [...state.events]..[eventIndex] = updated;
-
-    // Update the state with the new event
-    state = state.copyWith(events: newList);
   }
-
-  Future<void> toggleLike(String eventId, String username) async {
-    final index = state.events.indexWhere((e) => e.id == eventId);
-    if (index == -1) return;
-
-    final event = state.events[index];
-    final hasLiked = event.likedUsers.contains(username);
-
-    final updatedEvent = event.copyWith(
-      likedUsers:
-          hasLiked
-              ? event.likedUsers.where((u) => u != username).toList()
-              : [...event.likedUsers, username],
-    );
-
-    state.events[index] = updatedEvent;
-    state = state.copyWith(events: state.events);
-  }
-
-  Future<void> toggleSave(String eventId, String username) async {
-    final index = state.events.indexWhere((e) => e.id == eventId);
-    if (index == -1) return;
-
-    final event = state.events[index];
-    final hasLiked = event.savedUsers.contains(username);
-
-    final updatedEvent = event.copyWith(
-      savedUsers:
-          hasLiked
-              ? event.savedUsers.where((u) => u != username).toList()
-              : [...event.savedUsers, username],
-    );
-
-    state.events[index] = updatedEvent;
-    state = state.copyWith(events: state.events);
-  }
+  //
+  // Future<void> toggleLike(String eventId, String username) async {
+  //   final index = state.events.indexWhere((e) => e.id == eventId);
+  //   if (index == -1) return;
+  //
+  //   final event = state.events[index];
+  //   final hasLiked = event.likedUsers.contains(username);
+  //
+  //   final updatedEvent = event.copyWith(
+  //     likedUsers:
+  //         hasLiked
+  //             ? event.likedUsers.where((u) => u != username).toList()
+  //             : [...event.likedUsers, username],
+  //   );
+  //
+  //   state.events[index] = updatedEvent;
+  //   state = state.copyWith(events: state.events);
+  // }
+  //
+  // Future<void> toggleSave(String eventId, String username) async {
+  //   final index = state.events.indexWhere((e) => e.id == eventId);
+  //   if (index == -1) return;
+  //
+  //   final event = state.events[index];
+  //   final hasLiked = event.savedUsers.contains(username);
+  //
+  //   final updatedEvent = event.copyWith(
+  //     savedUsers:
+  //         hasLiked
+  //             ? event.savedUsers.where((u) => u != username).toList()
+  //             : [...event.savedUsers, username],
+  //   );
+  //
+  //   state.events[index] = updatedEvent;
+  //   state = state.copyWith(events: state.events);
+  // }
 
   Future<void> fetchEvents() async {
     state = state.copyWith(isLoading: true);
 
     try {
-      List<Event> events = await storageService.readEventsFromFile();
+      List<Event> events = await repository.fetchRemoteEvents();
       state = state.copyWith(events: events, isLoading: false);
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
+      throw ArgumentError(e.toString());
     }
   }
 }

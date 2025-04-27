@@ -48,12 +48,12 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   ),
                   child: Column(
                     children: [
-                      loggedUser.profileSource != null &&
-                              loggedUser.profileSource!.isNotEmpty
+                      loggedUser.profilePicture != null &&
+                              loggedUser.profilePicture!.isNotEmpty
                           ? CircleAvatar(
                             radius: 50,
-                            backgroundImage: AssetImage(
-                              loggedUser.profileSource!,
+                            backgroundImage: NetworkImage(
+                              loggedUser.profilePicture!,
                             ),
                           )
                           : CircleAvatar(
@@ -84,7 +84,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                         children: [
                           _infoTile(
                             "Events",
-                            loggedUser.participatedEvents.length.toString(),
+                            "0", //loggedUser.participatedEvents.length.toString(),
                           ),
                           _infoTile(
                             "Followers",

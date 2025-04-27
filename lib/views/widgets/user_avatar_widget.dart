@@ -17,7 +17,7 @@ class UserAvatarWidget extends ConsumerWidget {
 
     return InkWell(
       onTap: () {
-        if (loggedUser != null && user.username == loggedUser.username) {
+        if (user.username == loggedUser.username) {
           Navigator.popUntil(context, ModalRoute.withName('/main'));
           selectedPageNotifier.value = 4;
         } else {
@@ -32,10 +32,10 @@ class UserAvatarWidget extends ConsumerWidget {
         }
       },
       child:
-          user.profileSource != null && user.profileSource!.isNotEmpty
+          user.profilePicture != null && user.profilePicture!.isNotEmpty
               ? CircleAvatar(
                 radius: 25,
-                backgroundImage: AssetImage(user.profileSource!),
+                backgroundImage: NetworkImage(user.profilePicture!),
               )
               : CircleAvatar(radius: 25, child: Text(user.fullname[0])),
     );

@@ -8,6 +8,8 @@ import 'package:keef_w_wen/views/pages/view_profile_page.dart';
 import 'package:keef_w_wen/views/widgets/rating_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../classes/data/event.dart';
+import '../../classes/data/event_image.dart';
+import '../../classes/data/location.dart';
 import '../../classes/data/user.dart';
 import '../../classes/providers.dart';
 import 'event_lobby_page.dart';
@@ -37,18 +39,17 @@ class EventDetailsPage extends ConsumerWidget {
     //Event data
     final String title = event.title;
     final String description = event.description;
-    final String thumbnailSrc = event.thumbnailSrc;
-    final List<String> images = event.images;
-    final String hostOwner = event.hostOwner;
-    final double distance = event.distance;
-    final String location = event.location;
+    final String thumbnail = event.thumbnail;
+    final List<EventImage> images = event.images;
+    final User hostOwner = event.hostOwner;
+    final Location location = event.location;
     final bool isPrivate = event.isPrivate;
     final bool hasIdentification = event.needsId;
     final DateTime dateStart = event.dateStart;
     final bool openStatus = event.openStatus;
     final DateTime dateClosed = event.dateClosed;
     final int seats = event.seats;
-    final int likes = event.likedUsers.length;
+    final int likes = 5;
     final double price = event.price;
     final double rating = event.rating;
     final List<String> tags = event.tags;
@@ -77,9 +78,9 @@ class EventDetailsPage extends ConsumerWidget {
                       itemCount: event.images.length + 1,
                       itemBuilder: (context, index) {
                         if (index == 0) {
-                          return _buildImage(context, thumbnailSrc);
+                          return _buildImage(context, thumbnail);
                         } else {
-                          return _buildImage(context, images[index - 1]);
+                          return _buildImage(context, images[index - 1].image);
                         }
                       },
                     ),
@@ -89,9 +90,7 @@ class EventDetailsPage extends ConsumerWidget {
                   SizedBox(height: 10),
                   ListTile(
                     title: Text(
-                      users
-                          .firstWhere((user) => user.username == hostOwner)
-                          .fullname,
+                      hostOwner.fullname,
                       style: AppTextStyle(context: context).eventDetailsBrief,
                     ),
                     subtitle: Text(
@@ -102,7 +101,7 @@ class EventDetailsPage extends ConsumerWidget {
                   ),
                   ListTile(
                     title: Text(
-                      location,
+                      location.name,
                       style: AppTextStyle(context: context).eventDetailsBrief,
                     ),
                     subtitle: Text(
@@ -158,17 +157,6 @@ class EventDetailsPage extends ConsumerWidget {
                       style: AppTextStyle.eventDetailsSubTitle,
                     ),
                     leading: Icon(Icons.event_note, color: detailColor),
-                  ),
-                  ListTile(
-                    title: Text(
-                      "${distance.floor().toString()}KM away",
-                      style: AppTextStyle(context: context).eventDetailsBrief,
-                    ),
-                    subtitle: Text(
-                      "Distance from current location to event",
-                      style: AppTextStyle.eventDetailsSubTitle,
-                    ),
-                    leading: Icon(Icons.directions_car, color: detailColor),
                   ),
                   ListTile(
                     title: Text(
@@ -316,7 +304,7 @@ class EventDetailsPage extends ConsumerWidget {
           width: MediaQuery.of(context).size.width * 0.925,
           child: ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: Image.asset(image, fit: BoxFit.cover),
+            child: Image.network(image, fit: BoxFit.cover),
           ),
         ),
         onTap: () {
@@ -344,7 +332,7 @@ class EventDetailsPage extends ConsumerWidget {
           child: SizedBox(
             width: MediaQuery.of(context).size.width,
             height: MediaQuery.of(context).size.height,
-            child: Image.asset(image, fit: BoxFit.contain),
+            child: Image.network(image, fit: BoxFit.contain),
           ),
         ),
       ),
@@ -389,7 +377,7 @@ class EventDetailsPage extends ConsumerWidget {
                   title: Text(eventOwner.email),
                   onTap: () => _sendEmail(eventOwner.email),
                 ),
-                eventOwner.mobileNumber > 0
+                eventOwner.mobileNumber.isNotEmpty
                     ? ListTile(
                       leading: Icon(Icons.phone),
                       title: Text(eventOwner.mobileNumber.toString()),
@@ -414,8 +402,8 @@ class EventDetailsPage extends ConsumerWidget {
     }
   }
 
-  void _makeCall(int number) async {
-    final Uri phoneUri = Uri(scheme: 'tel', path: number.toString());
+  void _makeCall(String number) async {
+    final Uri phoneUri = Uri(scheme: 'tel', path: number);
     if (await canLaunchUrl(phoneUri)) {
       await launchUrl(phoneUri);
     } else {

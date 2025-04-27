@@ -112,7 +112,10 @@ class _EventLobbyPageState extends ConsumerState<EventLobbyPage> {
               style: AppTextStyle(context: context).eventLobbyCardTitle,
             ),
             SizedBox(height: 8),
-            Text(event.location, style: AppTextStyle.eventLobbyCardLocation),
+            Text(
+              event.location.name,
+              style: AppTextStyle.eventLobbyCardLocation,
+            ),
             SizedBox(height: 8),
             Text(
               "Organized by ${users.firstWhere((user) => user.username == event.hostOwner).fullname}",
@@ -345,8 +348,8 @@ class _EventLobbyPageState extends ConsumerState<EventLobbyPage> {
           borderRadius: BorderRadius.circular(12),
           child: EventMapView(
             title: event.title,
-            thumbnailSrc: event.thumbnailSrc,
-            coordinates: event.coordinates,
+            thumbnail: event.thumbnail,
+            coordinates: event.location.coordinates,
           ),
         ),
       ),
@@ -438,13 +441,13 @@ class _EventLobbyPageState extends ConsumerState<EventLobbyPage> {
               );
               return ListTile(
                 leading:
-                    hostUser.profileSource != null &&
-                            hostUser.profileSource!.isNotEmpty
+                    hostUser.profilePicture != null &&
+                            hostUser.profilePicture!.isNotEmpty
                         ? CircleAvatar(
-                          backgroundImage: AssetImage(hostUser.profileSource!),
+                          backgroundImage: AssetImage(hostUser.profilePicture!),
                         )
                         : CircleAvatar(child: Text(hostUser.fullname[0])),
-                title: Text(event.hostOwner),
+                title: Text(event.hostOwner.username),
                 subtitle: Text("Removed ${users[index].fullname}"),
               );
             },
@@ -477,7 +480,7 @@ class _EventLobbyPageState extends ConsumerState<EventLobbyPage> {
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 subtitle: Text(
-                  event.location,
+                  event.location.name,
                   style: TextStyle(fontSize: 16, color: Colors.grey[700]),
                 ),
                 trailing: IconButton(
@@ -499,7 +502,7 @@ class _EventLobbyPageState extends ConsumerState<EventLobbyPage> {
                   onPressed: () async {
                     final scaffoldMessenger = ScaffoldMessenger.of(context);
                     final Uri googleMapUrl = Uri.parse(
-                      "https://www.google.com/maps/search/?api=1&query=${event.coordinates.latitude},${event.coordinates.longitude}",
+                      "https://www.google.com/maps/search/?api=1&query=${event.location.coordinates.latitude},${event.location.coordinates.longitude}",
                     );
                     if (await canLaunchUrl(googleMapUrl)) {
                       await launchUrl(

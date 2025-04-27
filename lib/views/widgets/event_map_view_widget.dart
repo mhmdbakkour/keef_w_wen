@@ -7,13 +7,13 @@ import 'event_marker_widget.dart';
 class EventMapView extends StatefulWidget {
   final LatLng coordinates;
   final String title;
-  final String thumbnailSrc;
+  final String thumbnail;
 
   const EventMapView({
     super.key,
     required this.title,
     required this.coordinates,
-    required this.thumbnailSrc,
+    required this.thumbnail,
   });
 
   @override
@@ -100,7 +100,7 @@ class _EventMapViewState extends State<EventMapView> {
                 EventMarker(
                   title: widget.title,
                   coordinates: widget.coordinates,
-                  thumbnailUrl: widget.thumbnailSrc,
+                  thumbnailUrl: widget.thumbnail,
                   color: Theme.of(context).colorScheme.primaryContainer,
                   onTap: () {},
                 ),

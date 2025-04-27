@@ -27,12 +27,9 @@ class _EventCardBriefWidgetState extends ConsumerState<EventCardBriefWidget> {
     User loggedUser = ref.watch(loggedUserProvider).user;
     final Color primaryColor = Theme.of(context).colorScheme.primary;
 
-    bool hasLiked = event.likedUsers.contains(loggedUser.username);
-    bool hasSaved = event.savedUsers.contains(loggedUser.username);
-
     //Event Data
     final String title = event.title;
-    final String thumbnailSrc = event.thumbnailSrc;
+    final String thumbnail = event.thumbnail;
     return Card(
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
@@ -41,7 +38,7 @@ class _EventCardBriefWidgetState extends ConsumerState<EventCardBriefWidget> {
           height: 250,
           child: Column(
             children: [
-              Expanded(child: Image.asset(thumbnailSrc, fit: BoxFit.cover)),
+              Expanded(child: Image.network(thumbnail, fit: BoxFit.cover)),
               SizedBox(height: 10),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 6),
@@ -76,22 +73,24 @@ class _EventCardBriefWidgetState extends ConsumerState<EventCardBriefWidget> {
                         padding: EdgeInsets.zero,
                         visualDensity: VisualDensity.compact,
                         onPressed: () {
-                          ref
-                              .read(eventProvider.notifier)
-                              .toggleLike(event.id, loggedUser.username);
-                          if (hasLiked) {
-                            loggedUser.likedEvents.remove(event.id);
-                          } else {
-                            loggedUser.likedEvents.add(event.id);
-                          }
+                          // ref
+                          //     .read(eventProvider.notifier)
+                          //     .toggleLike(event.id, loggedUser.username);
+                          // if (hasLiked) {
+                          //   loggedUser.likedEvents.remove(event.id);
+                          // } else {
+                          //   loggedUser.likedEvents.add(event.id);
+                          // }
                         },
                         icon: Icon(
-                          hasLiked ? Icons.favorite : Icons.favorite_outline,
+                          // hasLiked ? Icons.favorite : Icons.favorite_outline,
+                          Icons.favorite_outline,
                           color: primaryColor,
                         ),
                       ),
                       Text(
-                        event.likedUsers.length.toString(),
+                        //event.likedUsers.length.toString(),
+                        4.toString(),
                         style: TextStyle(color: primaryColor),
                       ),
                     ],
@@ -103,22 +102,23 @@ class _EventCardBriefWidgetState extends ConsumerState<EventCardBriefWidget> {
                         padding: EdgeInsets.zero,
                         visualDensity: VisualDensity.compact,
                         onPressed: () {
-                          ref
-                              .read(eventProvider.notifier)
-                              .toggleSave(event.id, loggedUser.username);
-                          if (hasSaved) {
-                            loggedUser.savedEvents.remove(event.id);
-                          } else {
-                            loggedUser.savedEvents.add(event.id);
-                          }
+                          // ref
+                          //     .read(eventProvider.notifier)
+                          //     .toggleSave(event.id, loggedUser.username);
+                          // if (hasSaved) {
+                          //   loggedUser.savedEvents.remove(event.id);
+                          // } else {
+                          //   loggedUser.savedEvents.add(event.id);
+                          // }
                         },
                         icon: Icon(
-                          hasSaved ? Icons.bookmark : Icons.bookmark_outline,
+                          // hasSaved ? Icons.bookmark : Icons.bookmark_outline,
+                          Icons.bookmark_outline,
                           color: primaryColor,
                         ),
                       ),
                       Text(
-                        event.savedUsers.length.toString(),
+                        4.toString(), //event.savedUsers.length.toString(),
                         style: TextStyle(color: primaryColor),
                       ),
                     ],

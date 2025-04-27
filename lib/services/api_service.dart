@@ -7,7 +7,7 @@ class ApiService {
   ApiService({required this.baseUrl});
 
   Future<http.Response> get(String endpoint) async {
-    final url = Uri.parse('$baseUrl$endpoint');
+    final url = Uri.parse('$baseUrl/$endpoint');
     final response = await http.get(url);
     _handleErrors(response);
     return response;

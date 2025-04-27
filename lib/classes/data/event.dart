@@ -1,25 +1,25 @@
 import 'package:keef_w_wen/classes/data/participant.dart';
-import 'package:latlong2/latlong.dart';
+import 'package:keef_w_wen/classes/data/user.dart';
+
+import 'event_image.dart';
+import 'location.dart';
 
 class Event {
   final String id;
   String title;
-  String thumbnailSrc;
-  List<String> images;
+  String thumbnail;
+  List<EventImage> images;
   String description;
   double rating;
-  String hostOwner;
-  double distance;
-  String location;
-  LatLng coordinates;
+  User hostOwner;
+  Location location;
   bool isPrivate;
   bool needsId;
   final DateTime dateCreated;
   DateTime dateStart;
   DateTime dateClosed;
+  DateTime dateEnded;
   int seats;
-  List<String> likedUsers;
-  List<String> savedUsers;
   double price;
   bool openStatus;
   List<String> tags;
@@ -28,22 +28,19 @@ class Event {
   Event({
     required this.id,
     required this.title,
-    required this.thumbnailSrc,
+    required this.thumbnail,
     required this.images,
     required this.description,
     required this.rating,
     required this.hostOwner,
-    required this.distance,
     required this.location,
-    required this.coordinates,
     required this.isPrivate,
     required this.needsId,
     required this.dateCreated,
     required this.dateStart,
     required this.dateClosed,
+    required this.dateEnded,
     required this.seats,
-    required this.likedUsers,
-    required this.savedUsers,
     required this.price,
     required this.openStatus,
     required this.tags,
@@ -53,40 +50,36 @@ class Event {
   factory Event.fromJson(Map<String, dynamic> json) {
     List<Participant> participants =
         (json['participants'] as List<dynamic>?)?.map((participant) {
-          return Participant(
-            username: participant['username'] as String,
-            isHost: participant['isHost'] as bool? ?? false,
-            isOwner: participant['isOwner'] as bool? ?? false,
-          );
+          return Participant.fromJson(participant as Map<String, dynamic>);
+        }).toList() ??
+        [];
+
+    List<EventImage> images =
+        (json['images'] as List<dynamic>?)?.map((image) {
+          return EventImage.fromJson(image as Map<String, dynamic>);
         }).toList() ??
         [];
 
     return Event(
       id: json['id'] ?? '',
       title: json['title'] ?? '',
-      thumbnailSrc: json['thumbnailSrc'] ?? '',
-      images: List<String>.from(json['images'] ?? []),
+      thumbnail: json['thumbnail'] ?? '',
+      images: images,
       description: json['description'] ?? '',
       rating: (json['rating'] ?? 0.0).toDouble(),
-      hostOwner: participants.firstWhere((p) => p.isOwner ?? false).username,
-      distance: (json['distance'] ?? 0).toDouble(),
-      location: json['location'] ?? '',
-      coordinates: LatLng(
-        json['coordinates']['lat'] ?? 0.0,
-        json['coordinates']['lng'] ?? 0.0,
-      ),
-      isPrivate: json['isPrivate'] ?? false,
-      needsId: json['needsId'] ?? false,
+      hostOwner: User.fromJson(json['host_owner'] ?? {}),
+      location: Location.fromJson(json['location'] ?? {}),
+      isPrivate: json['is_private'] ?? false,
+      needsId: json['needs_id'] ?? false,
       dateCreated: DateTime.parse(
-        json['dateCreated'] ?? '1970-01-01T00:00:00Z',
+        json['date_created'] ?? '1970-01-01T00:00:00Z',
       ),
-      dateStart: DateTime.parse(json['dateStart'] ?? '1970-01-01T00:00:00Z'),
-      dateClosed: DateTime.parse(json['dateClosed'] ?? '1970-01-01T00:00:00Z'),
+      dateStart: DateTime.parse(json['date_start'] ?? '1970-01-01T00:00:00Z'),
+      dateClosed: DateTime.parse(json['date_closed'] ?? '1970-01-01T00:00:00Z'),
+      dateEnded: DateTime.parse(json['date_ended'] ?? '1970-01-01T00:00:00Z'),
       seats: (json['seats'] ?? 0).toInt(),
-      likedUsers: List<String>.from(json['likedUsers'] ?? []),
-      savedUsers: List<String>.from(json['savedUsers'] ?? []),
       price: (json['price'] ?? 0.0).toDouble(),
-      openStatus: json['openStatus'] ?? false,
+      openStatus: json['open_status'] ?? false,
       tags: List<String>.from(json['tags'] ?? []),
       participants: participants,
     );
@@ -94,59 +87,45 @@ class Event {
 
   Map<String, dynamic> toJson() {
     return {
-      '_id': id,
+      'id': id,
       'title': title,
-      'thumbnailSrc': thumbnailSrc,
-      'images': images,
+      'thumbnail': thumbnail,
+      'images': images.map((image) => image.toJson()).toList(),
       'description': description,
-      'rating': rating,
-      'hostOwner': hostOwner,
-      'distance': distance,
-      'location': location,
-      "coordinates": {
-        "lat": coordinates.latitude,
-        "lng": coordinates.longitude,
-      },
-      'isPrivate': isPrivate,
-      'hasIdentification': needsId,
-      'dateCreated': dateCreated.toIso8601String(),
-      'dateClosed': dateClosed.toIso8601String(),
-      'dateStart': dateStart.toIso8601String(),
+      'rating': rating.toDouble(),
+      'host_owner': hostOwner.toJson(),
+      'location': location.toJson(),
+      'is_private': isPrivate,
+      'needs_id': needsId,
+      'date_created': dateCreated.toIso8601String(),
+      'date_closed': dateClosed.toIso8601String(),
+      'date_start': dateStart.toIso8601String(),
+      'date_ended': dateEnded.toIso8601String(),
       'seats': seats,
-      'likedUsers': likedUsers,
-      'savedUsers': savedUsers,
       'price': price,
-      'openStatus': openStatus,
+      'open_status': openStatus,
       'tags': tags,
       'participants':
-          participants
-              .map(
-                (p) => {
-                  'username': p.username,
-                  'isHost': p.isHost,
-                  'isOwner': p.isOwner,
-                },
-              )
-              .toList(),
+          participants.map((participant) => participant.toJson()).toList(),
     };
   }
 
   Event copyWith({
     String? id,
     String? title,
-    String? thumbnailSrc,
-    List<String>? images,
+    String? thumbnail,
+    List<EventImage>? images,
     String? description,
     double? rating,
-    String? hostOwner,
+    User? hostOwner,
     double? distance,
-    String? location,
-    LatLng? coordinates,
+    Location? location,
     bool? isPrivate,
     bool? needsId,
     DateTime? dateCreated,
     DateTime? dateStart,
     DateTime? dateClosed,
+    DateTime? dateEnded,
     int? seats,
     List<String>? likedUsers,
     List<String>? savedUsers,
@@ -158,22 +137,19 @@ class Event {
     return Event(
       id: id ?? this.id,
       title: title ?? this.title,
-      thumbnailSrc: thumbnailSrc ?? this.thumbnailSrc,
+      thumbnail: thumbnail ?? this.thumbnail,
       images: images ?? this.images,
       description: description ?? this.description,
       rating: rating ?? this.rating,
       hostOwner: hostOwner ?? this.hostOwner,
-      distance: distance ?? this.distance,
       location: location ?? this.location,
-      coordinates: coordinates ?? this.coordinates,
       isPrivate: isPrivate ?? this.isPrivate,
       needsId: needsId ?? this.needsId,
       dateCreated: dateCreated ?? this.dateCreated,
       dateStart: dateStart ?? this.dateStart,
       dateClosed: dateClosed ?? this.dateClosed,
+      dateEnded: dateEnded ?? this.dateEnded,
       seats: seats ?? this.seats,
-      likedUsers: likedUsers ?? this.likedUsers,
-      savedUsers: savedUsers ?? this.savedUsers,
       price: price ?? this.price,
       openStatus: openStatus ?? this.openStatus,
       tags: tags ?? this.tags,
@@ -185,22 +161,19 @@ class Event {
     return Event(
       id: '',
       title: '',
-      thumbnailSrc: '',
+      thumbnail: '',
       images: [],
       description: '',
       rating: 0.0,
-      hostOwner: '',
-      distance: 0.0,
-      location: '',
-      coordinates: LatLng(0.0, 0.0),
+      hostOwner: User.empty(),
+      location: Location.empty(),
       isPrivate: false,
       needsId: false,
       dateCreated: DateTime.now(),
       dateStart: DateTime.now(),
       dateClosed: DateTime.now(),
+      dateEnded: DateTime.now(),
       seats: 0,
-      likedUsers: [],
-      savedUsers: [],
       price: 0.0,
       openStatus: false,
       tags: [],

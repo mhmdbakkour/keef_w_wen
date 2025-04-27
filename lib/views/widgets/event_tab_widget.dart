@@ -22,9 +22,11 @@ class _EventTabState extends ConsumerState<EventTabWidget> {
 
     List<String> eventIds = [];
     if (eventFilter == "Saved Events") {
-      eventIds = loggedUser.savedEvents;
+      eventIds =
+          events.map((event) => event.id).toList(); //loggedUser.savedEvents;
     } else if (eventFilter == "Liked Events") {
-      eventIds = loggedUser.likedEvents;
+      eventIds =
+          events.map((event) => event.id).toList(); //loggedUser.likedEvents;
     } else if (eventFilter == "Hosted Events") {
       eventIds =
           events

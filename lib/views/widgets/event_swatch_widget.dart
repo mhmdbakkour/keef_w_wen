@@ -27,8 +27,8 @@ class EventSwatchWidget extends ConsumerWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
-              child: Image.asset(
-                event.thumbnailSrc,
+              child: Image.network(
+                event.thumbnail,
                 fit: BoxFit.cover,
                 width: 50,
                 height: 50,

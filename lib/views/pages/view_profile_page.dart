@@ -37,10 +37,10 @@ class ViewProfilePage extends ConsumerWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          user.profileSource != null && user.profileSource!.isNotEmpty
+          user.profilePicture != null && user.profilePicture!.isNotEmpty
               ? CircleAvatar(
                 radius: 40,
-                backgroundImage: AssetImage(user.profileSource!),
+                backgroundImage: NetworkImage(user.profilePicture!),
               )
               : CircleAvatar(
                 radius: 40,
@@ -65,7 +65,10 @@ class ViewProfilePage extends ConsumerWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _infoTile("Events", user.participatedEvents.length.toString()),
+          _infoTile(
+            "Events",
+            "0",
+          ), //user.participatedEvents.length.toString()),
           _infoTile("Followers", user.followers.length.toString()),
           _infoTile("Following", user.following.length.toString()),
         ],
@@ -123,10 +126,8 @@ class ViewProfilePage extends ConsumerWidget {
     BuildContext context,
     List<Event> events,
   ) {
-    final publicEvents =
-        events
-            .where((event) => user.participatedEvents.contains(event.id))
-            .toList();
+    final publicEvents = events;
+    //
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,

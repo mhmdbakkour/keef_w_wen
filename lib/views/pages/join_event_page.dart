@@ -45,7 +45,7 @@ class JoinEventPage extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(12.0),
                     child: SizedBox(
                       height: 275,
-                      child: Image.asset(event.thumbnailSrc, fit: BoxFit.cover),
+                      child: Image.network(event.thumbnail, fit: BoxFit.cover),
                     ),
                   ),
                   SizedBox(height: 16),
@@ -55,7 +55,10 @@ class JoinEventPage extends ConsumerWidget {
                     "${DateFormat.yMMMd().format(event.dateStart)} at ${DateFormat.jm().format(event.dateStart)}",
                     style: AppTextStyle.joinEventDate,
                   ),
-                  Text(event.location, style: AppTextStyle.joinEventLocation),
+                  Text(
+                    event.location.name,
+                    style: AppTextStyle.joinEventLocation,
+                  ),
                   SizedBox(height: 8),
                   Text(
                     event.description,
@@ -148,7 +151,7 @@ class JoinEventPage extends ConsumerWidget {
                       try {
                         await ref
                             .read(eventProvider.notifier)
-                            .addParticipant(event.id, loggedUser.username);
+                            .createParticipant(event.id, loggedUser.username);
 
                         messenger.showSnackBar(
                           SnackBar(

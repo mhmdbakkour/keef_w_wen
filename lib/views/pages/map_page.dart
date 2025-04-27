@@ -164,7 +164,7 @@ class _MapPageState extends ConsumerState<MapPage> {
                   mapController: mapController,
                   options: MapOptions(
                     initialCenter:
-                        events[0].coordinates, //reset to userLocation!
+                        events[0].location.coordinates, //reset to userLocation!
                     initialZoom: 13.0,
                   ),
                   children: [
@@ -188,9 +188,9 @@ class _MapPageState extends ConsumerState<MapPage> {
                         ),
                         ...events.map((e) {
                           return EventMarker(
-                            coordinates: e.coordinates,
+                            coordinates: e.location.coordinates,
                             title: e.title,
-                            thumbnailUrl: e.thumbnailSrc,
+                            thumbnailUrl: e.thumbnail,
                             color:
                                 e.participants.any(
                                       (p) => p.username == loggedUser.username,
