@@ -8,7 +8,7 @@ class EventMarker extends Marker {
     required LatLng coordinates,
     required VoidCallback onTap,
     required String title,
-    required String thumbnailUrl,
+    required String thumbnail,
     required Color color,
   }) : super(
          point: coordinates,
@@ -61,7 +61,7 @@ class EventMarker extends Marker {
                      top: 6,
                      child: CircleAvatar(
                        radius: 20,
-                       backgroundImage: AssetImage(thumbnailUrl),
+                       backgroundImage: NetworkImage(thumbnail),
                        backgroundColor: Colors.white,
                      ),
                    ),

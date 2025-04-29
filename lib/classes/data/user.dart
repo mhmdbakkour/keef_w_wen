@@ -39,9 +39,9 @@ class User {
 
   factory User.empty() {
     return User(
-      username: '',
-      fullname: '',
-      email: '',
+      username: 'username',
+      fullname: 'fullname',
+      email: 'user@email.com',
       bio: '',
       profilePicture: '',
       mobileNumber: '',

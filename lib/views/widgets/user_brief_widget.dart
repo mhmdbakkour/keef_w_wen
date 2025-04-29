@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:keef_w_wen/classes/providers.dart';
@@ -25,9 +27,13 @@ class UserBriefWidget extends ConsumerWidget {
               )
               : CircleAvatar(
                 radius: 25,
-                child: Text(user.fullname[0].toUpperCase()),
+                child: Text(
+                  user.fullname.isNotEmpty
+                      ? user.fullname[0].toUpperCase()
+                      : user.username[0].toUpperCase(),
+                ),
               ),
-      title: Text(user.fullname),
+      title: Text(user.fullname.isNotEmpty ? user.fullname : user.username),
       subtitle: Text(user.username),
       trailing: PopupMenuButton<String>(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -83,6 +89,16 @@ class UserBriefWidget extends ConsumerWidget {
               ),
             ],
       ),
+    );
+  }
+
+  Color getRandomColor() {
+    final random = Random();
+    return Color.fromARGB(
+      255, // Alpha value (opacity) 0 - 255
+      random.nextInt(256), // Red channel (0 - 255)
+      random.nextInt(256), // Green channel (0 - 255)
+      random.nextInt(256), // Blue channel (0 - 255)
     );
   }
 }

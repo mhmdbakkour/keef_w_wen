@@ -144,6 +144,7 @@ class _MapPageState extends ConsumerState<MapPage> {
 
   @override
   void dispose() {
+    mapController.dispose();
     super.dispose();
   }
 
@@ -190,7 +191,7 @@ class _MapPageState extends ConsumerState<MapPage> {
                           return EventMarker(
                             coordinates: e.location.coordinates,
                             title: e.title,
-                            thumbnailUrl: e.thumbnail,
+                            thumbnail: e.thumbnail,
                             color:
                                 e.participants.any(
                                       (p) => p.username == loggedUser.username,

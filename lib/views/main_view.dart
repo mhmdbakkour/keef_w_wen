@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:keef_w_wen/classes/providers.dart';
 import 'package:keef_w_wen/views/pages/events_page.dart';
 import 'package:keef_w_wen/views/pages/home_page.dart';
-import 'package:keef_w_wen/views/pages/login_page.dart';
 import 'package:keef_w_wen/views/pages/map_page.dart';
 import 'package:keef_w_wen/views/pages/people_page.dart';
 import 'package:keef_w_wen/views/pages/profile_page.dart';
@@ -22,13 +21,22 @@ class MainView extends ConsumerStatefulWidget {
 }
 
 class _MainViewState extends ConsumerState<MainView> {
+  late final PageController _pageController;
+
   @override
   void initState() {
     super.initState();
-    // Fetch data once at init
+    _pageController = PageController();
     Future.microtask(() {
       ref.read(eventProvider.notifier).fetchEvents();
+      ref.read(userProvider.notifier).fetchUsers();
     });
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   @override
@@ -64,7 +72,7 @@ class _MainViewState extends ConsumerState<MainView> {
               return value == 4
                   ? Text(
                     loggedUser.username.isNotEmpty
-                        ? loggedUser.username
+                        ? "${loggedUser.username}'s Profile"
                         : "Profile",
                   )
                   : Text("Keef W Wen");
@@ -96,31 +104,15 @@ class _MainViewState extends ConsumerState<MainView> {
             ),
           ],
         ),
-        body: ValueListenableBuilder(
-          valueListenable: selectedPageNotifier,
-          builder: (context, value, child) {
-            return pages.elementAt(value);
+        body: PageView(
+          physics: NeverScrollableScrollPhysics(),
+          controller: _pageController,
+          onPageChanged: (index) {
+            selectedPageNotifier.value = index;
           },
+          children: pages,
         ),
-        floatingActionButton: ValueListenableBuilder<int>(
-          valueListenable: selectedPageNotifier,
-          builder: (context, value, _) {
-            if (value == 4) {
-              return FloatingActionButton(
-                onPressed: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => LoginPage()),
-                  );
-                },
-                child: Icon(Icons.logout),
-              );
-            } else {
-              return SizedBox.shrink(); // empty invisible widget
-            }
-          },
-        ),
-        bottomNavigationBar: NavbarWidget(),
+        bottomNavigationBar: NavbarWidget(pageController: _pageController),
       ),
     );
   }

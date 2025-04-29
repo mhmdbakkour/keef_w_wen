@@ -18,7 +18,6 @@ class EventRepository {
   Future<List<Event>> fetchRemoteEvents() async {
     final response = await apiService.get('events/');
     final List decoded = jsonDecode(response.body);
-    print(decoded);
     return decoded.map((e) => Event.fromJson(e)).toList();
   }
 

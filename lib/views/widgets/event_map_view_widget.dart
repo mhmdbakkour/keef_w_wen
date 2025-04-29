@@ -100,7 +100,7 @@ class _EventMapViewState extends State<EventMapView> {
                 EventMarker(
                   title: widget.title,
                   coordinates: widget.coordinates,
-                  thumbnailUrl: widget.thumbnail,
+                  thumbnail: widget.thumbnail,
                   color: Theme.of(context).colorScheme.primaryContainer,
                   onTap: () {},
                 ),

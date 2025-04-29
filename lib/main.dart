@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:keef_w_wen/data/notifiers.dart';
 import 'package:keef_w_wen/theme.dart';
 import 'package:keef_w_wen/views/main_view.dart';
-import 'package:keef_w_wen/views/pages/login_page.dart';
+import 'package:keef_w_wen/views/pages/landing_page.dart';
 import 'package:keef_w_wen/data/constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -48,7 +48,7 @@ class _MyAppState extends State<MyApp> {
           debugShowCheckedModeBanner: false,
           theme: AppTheme(Typography.blackRedmond).light(),
           darkTheme: AppTheme(Typography.blackRedwoodCity).dark(),
-          home: LoginPage(),
+          home: LandingPage(),
         );
       },
     );

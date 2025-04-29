@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:keef_w_wen/classes/providers.dart';
+import 'package:keef_w_wen/classes/repositories/user_repository.dart';
 import 'package:keef_w_wen/data/constants.dart';
 import 'package:keef_w_wen/views/widgets/user_brief_widget.dart';
 import '../../classes/data/event.dart';
 import '../../classes/data/user.dart';
 import '../widgets/event_tab_widget.dart';
 import 'package:http/http.dart' as http;
+
+import 'login_page.dart';
 
 enum EventFilter { saved, liked, hosted, owned }
 
@@ -20,20 +23,21 @@ class ProfilePage extends ConsumerStatefulWidget {
 class _ProfilePageState extends ConsumerState<ProfilePage> {
   @override
   Widget build(BuildContext context) {
-    return Consumer(
-      builder: (context, ref, child) {
-        List<Event> events = ref.watch(eventProvider).events;
-        List<User> users = ref.watch(userProvider).users;
-        User loggedUser = ref.watch(loggedUserProvider).user;
+    UserRepository repository = ref.watch(userRepositoryProvider);
+    List<Event> events = ref.watch(eventProvider).events;
+    List<User> users = ref.watch(userProvider).users;
+    User loggedUser = ref.watch(loggedUserProvider).user;
 
-        if (events.isEmpty) {
-          return Center(child: Text("No events available."));
-        }
-        if (users.isEmpty) {
-          return Center(child: Text("No users available."));
-        }
+    if (events.isEmpty) {
+      return Center(child: Text("No events available."));
+    }
+    if (users.isEmpty) {
+      return Center(child: Text("No users available."));
+    }
 
-        return NestedScrollView(
+    return Stack(
+      children: [
+        NestedScrollView(
           headerSliverBuilder: (context, innerBoxIsScrolled) {
             return [
               SliverToBoxAdapter(
@@ -61,7 +65,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                             backgroundColor:
                                 Theme.of(context).colorScheme.primary,
                             child: Text(
-                              loggedUser.fullname[0],
+                              loggedUser.fullname.isNotEmpty
+                                  ? loggedUser.fullname[0]
+                                  : loggedUser.username[0].toUpperCase(),
                               style: TextStyle(fontSize: 30),
                             ),
                           ),
@@ -69,7 +75,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                       Text(
                         loggedUser.fullname.isNotEmpty
                             ? loggedUser.fullname
-                            : "No user :(",
+                            : loggedUser.username,
                         style: AppTextStyle.profileFullname,
                       ),
                       SizedBox(height: 5),
@@ -127,8 +133,33 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               ],
             ),
           ),
-        );
-      },
+        ),
+        Align(
+          alignment: Alignment.bottomRight,
+          child: Padding(
+            padding: const EdgeInsets.all(4.0),
+            child: FilledButton.icon(
+              style: ElevatedButton.styleFrom(elevation: 4),
+              label: Text("Logout"),
+              icon: Icon(Icons.logout),
+              onPressed: () async {
+                await repository.logout();
+
+                if (mounted) {
+                  await Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) {
+                        return LoginPage();
+                      },
+                    ),
+                  );
+                }
+              },
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -144,28 +175,32 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   Widget _buildProfileActions() {
     return Padding(
       padding: const EdgeInsets.all(16.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      child: Column(
         children: [
-          ElevatedButton.icon(
-            onPressed: () async {
-              const String baseUrl = "http://192.168.1.108:8000";
-              try {
-                final response = await http.get(
-                  Uri.parse('$baseUrl/api/users/'),
-                );
-                print(response.body);
-              } on Exception catch (e) {
-                print("Exception: $e");
-              }
-            },
-            icon: Icon(Icons.edit),
-            label: Text("Edit Profile"),
-          ),
-          ElevatedButton.icon(
-            onPressed: () {},
-            icon: Icon(Icons.share),
-            label: Text("Share Profile"),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              ElevatedButton.icon(
+                onPressed: () async {
+                  const String baseUrl = "http://192.168.1.108:8000";
+                  try {
+                    final response = await http.get(
+                      Uri.parse('$baseUrl/api/users/'),
+                    );
+                    print(response.body);
+                  } on Exception catch (e) {
+                    print("Exception: $e");
+                  }
+                },
+                icon: Icon(Icons.edit),
+                label: Text("Edit Profile"),
+              ),
+              ElevatedButton.icon(
+                onPressed: () {},
+                icon: Icon(Icons.share),
+                label: Text("Share Profile"),
+              ),
+            ],
           ),
         ],
       ),
