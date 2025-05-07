@@ -38,7 +38,23 @@ class _EventCardBriefWidgetState extends ConsumerState<EventCardBriefWidget> {
           height: 250,
           child: Column(
             children: [
-              Expanded(child: Image.network(thumbnail, fit: BoxFit.cover)),
+              Expanded(
+                child:
+                    thumbnail.isNotEmpty
+                        ? Image.network(thumbnail, fit: BoxFit.cover)
+                        : Container(
+                          width: 255,
+                          color:
+                              Theme.of(
+                                context,
+                              ).colorScheme.surfaceContainerHighest,
+                          child: Icon(
+                            Icons.broken_image,
+                            size: 50,
+                            color: Theme.of(context).colorScheme.error,
+                          ),
+                        ),
+              ),
               SizedBox(height: 10),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 6),
@@ -73,6 +89,7 @@ class _EventCardBriefWidgetState extends ConsumerState<EventCardBriefWidget> {
                         padding: EdgeInsets.zero,
                         visualDensity: VisualDensity.compact,
                         onPressed: () {
+                          //TODO: Implement the like button
                           // ref
                           //     .read(eventProvider.notifier)
                           //     .toggleLike(event.id, loggedUser.username);
@@ -102,6 +119,7 @@ class _EventCardBriefWidgetState extends ConsumerState<EventCardBriefWidget> {
                         padding: EdgeInsets.zero,
                         visualDensity: VisualDensity.compact,
                         onPressed: () {
+                          //TODO: Implement the save button
                           // ref
                           //     .read(eventProvider.notifier)
                           //     .toggleSave(event.id, loggedUser.username);

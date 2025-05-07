@@ -14,7 +14,7 @@ class SearchBarWidget extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(25),
-          color: Theme.of(context).colorScheme.secondaryContainer,
+          color: Theme.of(context).colorScheme.tertiaryContainer,
         ),
         width: double.infinity,
         height: 50,
@@ -28,7 +28,7 @@ class SearchBarWidget extends StatelessWidget {
                 child: Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(20),
-                    color: Theme.of(context).colorScheme.onSecondaryContainer,
+                    color: Theme.of(context).cardColor,
                   ),
                   padding: EdgeInsets.symmetric(horizontal: 8.0),
                   alignment: Alignment.center,

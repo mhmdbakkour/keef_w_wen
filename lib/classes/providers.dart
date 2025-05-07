@@ -1,7 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:keef_w_wen/classes/notifiers/user_followers_notifier.dart';
 import 'package:keef_w_wen/classes/repositories/event_repository.dart';
+import 'package:keef_w_wen/classes/repositories/location_repository.dart';
 import 'package:keef_w_wen/classes/repositories/user_repository.dart';
+import 'package:keef_w_wen/classes/states/location_state.dart';
+import 'package:keef_w_wen/classes/states/user_followers_state.dart';
 import '../services/api_service.dart';
+import 'notifiers/location_notifier.dart';
 import 'states/logged_user_state.dart';
 import 'states/user_state.dart';
 import '../services/storage_service.dart';
@@ -11,12 +16,13 @@ import 'notifiers/logged_user_notifier.dart';
 import 'notifiers/user_notifier.dart';
 import 'states/event_state.dart';
 
+//TODO: Remove the storage service provider and all its usages
 final storageServiceProvider = Provider<StorageService>(
   (ref) => StorageService(),
 );
 
 final apiServiceProvider = Provider<ApiService>((ref) {
-  const baseUrl = 'http://192.168.1.101:8000/api';
+  const baseUrl = 'http://192.168.1.103:8000/api';
   return ApiService(baseUrl: baseUrl);
 });
 
@@ -56,3 +62,24 @@ final loggedUserProvider =
     StateNotifierProvider<LoggedUserNotifier, LoggedUserState>(
       (ref) => LoggedUserNotifier(),
     );
+
+final locationRepositoryProvider = Provider<LocationRepository>((ref) {
+  final apiService = ref.read(apiServiceProvider);
+  return LocationRepository(apiService: apiService);
+});
+
+final locationProvider = StateNotifierProvider<LocationNotifier, LocationState>(
+  (ref) {
+    final repository = ref.read(locationRepositoryProvider);
+    return LocationNotifier(repository);
+  },
+);
+
+final userFollowersProvider = StateNotifierProvider.family<
+  UserFollowersNotifier,
+  UserFollowersState,
+  String
+>((ref, username) {
+  final repository = ref.read(userRepositoryProvider);
+  return UserFollowersNotifier(repository, username);
+});

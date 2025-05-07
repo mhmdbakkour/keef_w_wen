@@ -1,5 +1,5 @@
 import 'dart:convert';
-
+import 'dart:io';
 import '../../services/api_service.dart';
 import '../../services/storage_service.dart';
 import '../data/event.dart';
@@ -21,37 +21,71 @@ class EventRepository {
     return decoded.map((e) => Event.fromJson(e)).toList();
   }
 
-  // Future<void> saveEventsLocally(List<Event> events) async {
-  //   try {
-  //     await storageService.saveEvents(events);
-  //   } catch (e) {
-  //     throw Exception('Failed to save events locally: $e');
-  //   }
-  // }
+  Future<void> createEvent(
+    Map<String, dynamic> locationData,
+    Map<String, dynamic> eventData,
+    File? eventThumbnail,
+    List<File>? eventImages,
+  ) async {
+    final locationResponse = await apiService.post('locations/', locationData);
 
-  Future<void> createEvent(Event event) async {
-    try {
-      await apiService.post('/events/', event.toJson());
-    } catch (e) {
-      throw Exception('Failed to create event: $e');
+    if (locationResponse.statusCode == 201) {
+      final locationBody = jsonDecode(locationResponse.body);
+      final locationId = locationBody['id'];
+
+      eventData['location'] = locationId;
+      eventData['tags'] = jsonEncode(eventData['tags']);
+      final eventResponse = await apiService.postMultipart(
+        endpoint: 'events/',
+        rawFields: eventData,
+        files: eventThumbnail != null ? [eventThumbnail] : [],
+        fileField: 'thumbnail',
+        requiresAuth: false,
+      );
+
+      if (eventResponse.statusCode == 201) {
+        if (eventImages != null && eventImages.isNotEmpty) {
+          final responseBody = await eventResponse.stream.bytesToString();
+          final json = jsonDecode(responseBody);
+          final eventId = json['id'];
+
+          await apiService.postMultipart(
+            endpoint: 'events/$eventId/upload-images/',
+            rawFields: {'event': eventId},
+            files: eventImages,
+            fileField: 'images',
+            requiresAuth: false,
+          );
+        }
+      } else {
+        throw Exception(
+          'Failed to create event. Status: ${eventResponse.statusCode}. Body: ${await eventResponse.stream.bytesToString()}',
+        );
+      }
+    } else {
+      throw Exception(
+        'Failed to create location. Status: ${locationResponse.statusCode}',
+      );
     }
   }
 
   Future<void> deleteEvent(String id) async {
     try {
-      await apiService.delete('/events/$id/');
+      await apiService.delete('events/$id/');
     } catch (e) {
       throw Exception('Failed to delete event: $e');
     }
   }
 
   Future<void> updateEvent(Event updatedEvent) async {
-    await apiService.put('/events/${updatedEvent.id}', updatedEvent.toJson());
+    await apiService.put('events/${updatedEvent.id}', updatedEvent.toJson());
   }
+
+  Future<void> createEventImage(String eventId, File image) async {}
 
   Future<Participant> createParticipant(String eventId, String username) async {
     try {
-      final response = await apiService.post('/participants/', {
+      final response = await apiService.post('participants/', {
         'event': eventId,
         'user': username,
         'isHost': false,
@@ -65,7 +99,7 @@ class EventRepository {
 
   Future<Participant> createHost(String eventId, String username) async {
     try {
-      final response = await apiService.post('/participants/', {
+      final response = await apiService.post('participants/', {
         'event': eventId,
         'user': username,
         'isHost': true,
@@ -79,7 +113,7 @@ class EventRepository {
 
   Future<Participant> createOwner(String eventId, String username) async {
     try {
-      final response = await apiService.post('/participants/', {
+      final response = await apiService.post('participants/', {
         'event': eventId,
         'user': username,
         'isHost': true,

@@ -7,33 +7,41 @@ import 'package:keef_w_wen/views/widgets/user_brief_widget.dart';
 import '../../classes/data/event.dart';
 import '../../classes/data/user.dart';
 import '../widgets/event_tab_widget.dart';
-import 'package:http/http.dart' as http;
 
 import 'login_page.dart';
 
 enum EventFilter { saved, liked, hosted, owned }
 
 class ProfilePage extends ConsumerStatefulWidget {
-  const ProfilePage({super.key});
+  final User loggedUser;
+
+  const ProfilePage({super.key, required this.loggedUser});
 
   @override
   ConsumerState<ProfilePage> createState() => _ProfilePageState();
 }
 
 class _ProfilePageState extends ConsumerState<ProfilePage> {
+  List<String> followers = [];
+  List<String> following = [];
+
+  @override
+  void initState() {
+    ref
+        .read(userFollowersProvider(widget.loggedUser.username).notifier)
+        .refresh();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     UserRepository repository = ref.watch(userRepositoryProvider);
     List<Event> events = ref.watch(eventProvider).events;
     List<User> users = ref.watch(userProvider).users;
-    User loggedUser = ref.watch(loggedUserProvider).user;
+    final loggedUser = widget.loggedUser;
 
-    if (events.isEmpty) {
-      return Center(child: Text("No events available."));
-    }
-    if (users.isEmpty) {
-      return Center(child: Text("No users available."));
-    }
+    followers = ref.watch(userFollowersProvider(loggedUser.username)).followers;
+    following = ref.watch(userFollowersProvider(loggedUser.username)).following;
 
     return Stack(
       children: [
@@ -62,8 +70,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                           )
                           : CircleAvatar(
                             radius: 50,
-                            backgroundColor:
-                                Theme.of(context).colorScheme.primary,
+                            backgroundColor: loggedUser.associatedColor,
                             child: Text(
                               loggedUser.fullname.isNotEmpty
                                   ? loggedUser.fullname[0]
@@ -90,16 +97,15 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                         children: [
                           _infoTile(
                             "Events",
-                            "0", //loggedUser.participatedEvents.length.toString(),
+                            events
+                                .where(
+                                  (event) =>
+                                      event.hostOwner == loggedUser.username,
+                                )
+                                .length,
                           ),
-                          _infoTile(
-                            "Followers",
-                            loggedUser.followers.length.toString(),
-                          ),
-                          _infoTile(
-                            "Following",
-                            loggedUser.following.length.toString(),
-                          ),
+                          _infoTile("Followers", followers.length),
+                          _infoTile("Following", following.length),
                         ],
                       ),
                       _buildProfileActions(),
@@ -124,7 +130,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   child: TabBarView(
                     physics: NeverScrollableScrollPhysics(),
                     children: [
-                      EventTabWidget(),
+                      events.isNotEmpty
+                          ? EventTabWidget()
+                          : Center(child: Text("No events available.")),
                       _userFollowers(loggedUser, users),
                       _userFollowing(loggedUser, users),
                     ],
@@ -163,10 +171,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     );
   }
 
-  Widget _infoTile(String title, String value) {
+  Widget _infoTile(String title, int value) {
     return Column(
       children: [
-        Text(value, style: AppTextStyle.profileDataNumber),
+        Text(value.toString(), style: AppTextStyle.profileDataNumber),
         Text(title, style: AppTextStyle.profileDataDesc),
       ],
     );
@@ -181,18 +189,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               ElevatedButton.icon(
-                onPressed: () async {
-                  const String baseUrl = "http://192.168.1.108:8000";
-                  try {
-                    final response = await http.get(
-                      Uri.parse('$baseUrl/api/users/'),
-                    );
-                    print(response.body);
-                  } on Exception catch (e) {
-                    print("Exception: $e");
-                  }
-                },
-                icon: Icon(Icons.edit),
+                onPressed: () {},
+                icon: Icon(Icons.person),
                 label: Text("Edit Profile"),
               ),
               ElevatedButton.icon(
@@ -219,6 +217,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   }
 
   Widget _userFollowers(User loggedUser, List<User> users) {
+    if (users.isEmpty) {
+      return Center(child: Text("No users available."));
+    }
     return ListView.builder(
       physics: NeverScrollableScrollPhysics(),
       itemCount: loggedUser.followers.length,
@@ -232,6 +233,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   }
 
   Widget _userFollowing(User loggedUser, List<User> users) {
+    if (users.isEmpty) {
+      return Center(child: Text("No users available."));
+    }
     return ListView.builder(
       physics: NeverScrollableScrollPhysics(),
       itemCount: loggedUser.following.length,

@@ -152,6 +152,7 @@ class _MapPageState extends ConsumerState<MapPage> {
   Widget build(BuildContext context) {
     User loggedUser = ref.watch(loggedUserProvider).user;
     final List<Event> events = ref.watch(eventProvider).events;
+    final locations = ref.watch(locationProvider).locations;
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Card(
@@ -164,9 +165,8 @@ class _MapPageState extends ConsumerState<MapPage> {
                 FlutterMap(
                   mapController: mapController,
                   options: MapOptions(
-                    initialCenter:
-                        events[0].location.coordinates, //reset to userLocation!
-                    initialZoom: 13.0,
+                    initialCenter: LatLng(33.8547, 35.8623),
+                    initialZoom: 9,
                   ),
                   children: [
                     TileLayer(
@@ -188,8 +188,11 @@ class _MapPageState extends ConsumerState<MapPage> {
                           ),
                         ),
                         ...events.map((e) {
+                          final eventLocation = locations.firstWhere(
+                            (location) => e.location == location.id,
+                          );
                           return EventMarker(
-                            coordinates: e.location.coordinates,
+                            coordinates: eventLocation.coordinates,
                             title: e.title,
                             thumbnail: e.thumbnail,
                             color:
@@ -202,6 +205,11 @@ class _MapPageState extends ConsumerState<MapPage> {
                                     : Theme.of(
                                       context,
                                     ).colorScheme.primaryContainer,
+                            errorColor:
+                                Theme.of(
+                                  context,
+                                ).colorScheme.surfaceContainerHighest,
+                            iconErrorColor: Theme.of(context).colorScheme.error,
                             onTap: () {
                               Navigator.push(
                                 context,

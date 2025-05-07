@@ -32,8 +32,8 @@ class Location {
     return {
       'id': id,
       'name': name,
-      'latitude': coordinates.latitude,
-      'longitude': coordinates.longitude,
+      'latitude': coordinates.latitude.toString(),
+      'longitude': coordinates.longitude.toString(),
       'timestamp': timestamp.toIso8601String(),
       'accuracy': accuracy,
       'source': source,

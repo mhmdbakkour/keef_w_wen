@@ -1,8 +1,5 @@
 import 'package:keef_w_wen/classes/data/participant.dart';
-import 'package:keef_w_wen/classes/data/user.dart';
-
 import 'event_image.dart';
-import 'location.dart';
 
 class Event {
   final String id;
@@ -11,8 +8,8 @@ class Event {
   List<EventImage> images;
   String description;
   double rating;
-  User hostOwner;
-  Location location;
+  String hostOwner;
+  String location;
   bool isPrivate;
   bool needsId;
   final DateTime dateCreated;
@@ -67,8 +64,8 @@ class Event {
       images: images,
       description: json['description'] ?? '',
       rating: (json['rating'] ?? 0.0).toDouble(),
-      hostOwner: User.fromJson(json['host_owner'] ?? {}),
-      location: Location.fromJson(json['location'] ?? {}),
+      hostOwner: json['host_owner'] ?? '',
+      location: json['location'] ?? '',
       isPrivate: json['is_private'] ?? false,
       needsId: json['needs_id'] ?? false,
       dateCreated: DateTime.parse(
@@ -93,8 +90,8 @@ class Event {
       'images': images.map((image) => image.toJson()).toList(),
       'description': description,
       'rating': rating.toDouble(),
-      'host_owner': hostOwner.toJson(),
-      'location': location.toJson(),
+      'host_owner': hostOwner,
+      'location': location,
       'is_private': isPrivate,
       'needs_id': needsId,
       'date_created': dateCreated.toIso8601String(),
@@ -117,9 +114,9 @@ class Event {
     List<EventImage>? images,
     String? description,
     double? rating,
-    User? hostOwner,
+    String? hostOwner,
     double? distance,
-    Location? location,
+    String? location,
     bool? isPrivate,
     bool? needsId,
     DateTime? dateCreated,
@@ -165,8 +162,8 @@ class Event {
       images: [],
       description: '',
       rating: 0.0,
-      hostOwner: User.empty(),
-      location: Location.empty(),
+      hostOwner: '',
+      location: '',
       isPrivate: false,
       needsId: false,
       dateCreated: DateTime.now(),

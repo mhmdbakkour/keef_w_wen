@@ -27,6 +27,7 @@ class UserBriefWidget extends ConsumerWidget {
               )
               : CircleAvatar(
                 radius: 25,
+                backgroundColor: user.associatedColor,
                 child: Text(
                   user.fullname.isNotEmpty
                       ? user.fullname[0].toUpperCase()
@@ -43,7 +44,9 @@ class UserBriefWidget extends ConsumerWidget {
           switch (value) {
             case 'view':
               if (user.username == loggedUser.username) {
-                Navigator.popUntil(context, ModalRoute.withName('/main'));
+                if (ModalRoute.of(context)?.settings.name != '/main') {
+                  Navigator.popUntil(context, ModalRoute.withName('/main'));
+                }
                 selectedPageNotifier.value = 4;
               } else {
                 Navigator.push(

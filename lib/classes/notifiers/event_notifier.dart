@@ -10,14 +10,14 @@ class EventNotifier extends StateNotifier<EventState> {
   EventNotifier(this.repository)
     : super(EventState(events: [], isLoading: false));
 
-  Future<void> createEvent(Event event) async {
-    try {
-      await repository.createEvent(event);
-      state = state.copyWith(events: [...state.events, event]);
-    } catch (e) {
-      print("Could not create event. Error: $e");
-    }
-  }
+  // Future<void> createEvent(Event event) async {
+  //   try {
+  //     await repository.createEvent(event);
+  //     state = state.copyWith(events: [...state.events, event]);
+  //   } catch (e) {
+  //     print("Could not create event. Error: $e");
+  //   }
+  // }
 
   Future<void> deleteEvent(String eventId) async {
     try {
@@ -181,9 +181,9 @@ class EventNotifier extends StateNotifier<EventState> {
     try {
       List<Event> events = await repository.fetchRemoteEvents();
       state = state.copyWith(events: events, isLoading: false);
-    } catch (e) {
+    } catch (e, stack) {
       state = state.copyWith(isLoading: false, error: e.toString());
-      throw ArgumentError(e.toString());
+      throw ArgumentError(stack);
     }
   }
 }

@@ -25,15 +25,30 @@ class EventSwatchWidget extends ConsumerWidget {
         padding: const EdgeInsets.all(5.0),
         child: Row(
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Image.network(
-                event.thumbnail,
-                fit: BoxFit.cover,
-                width: 50,
-                height: 50,
-              ),
-            ),
+            event.thumbnail.isNotEmpty
+                ? ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.network(
+                    event.thumbnail,
+                    fit: BoxFit.cover,
+                    width: 50,
+                    height: 50,
+                  ),
+                )
+                : Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    color:
+                        Theme.of(context).colorScheme.surfaceContainerHighest,
+                  ),
+                  width: 50,
+                  height: 50,
+                  child: Icon(
+                    Icons.broken_image,
+                    size: 30,
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+                ),
             SizedBox(width: 10),
             Expanded(
               child: Align(

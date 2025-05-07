@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'location.dart';
 
 class User {
@@ -6,7 +7,9 @@ class User {
   final String email;
   String bio;
   String mobileNumber;
+  bool sharingLocation;
   String? profilePicture;
+  Color? associatedColor;
   List<String> followers;
   List<String> following;
   Location location;
@@ -16,8 +19,10 @@ class User {
     required this.fullname,
     required this.email,
     required this.bio,
-    required this.profilePicture,
     required this.mobileNumber,
+    required this.sharingLocation,
+    required this.profilePicture,
+    required this.associatedColor,
     required this.followers,
     required this.following,
     required this.location,
@@ -31,6 +36,10 @@ class User {
       bio: json['bio'] ?? '',
       profilePicture: json['profile_picture'] ?? '',
       mobileNumber: json['mobile_number'] ?? '',
+      sharingLocation: json['sharing_location'] ?? false,
+      associatedColor: Color(
+        int.parse(json['associated_color'] ?? '0xFFAAAAAA'),
+      ),
       followers: List<String>.from(json['followers'] ?? []),
       following: List<String>.from(json['following'] ?? []),
       location: Location.fromJson(json['location'] ?? {}),
@@ -40,11 +49,13 @@ class User {
   factory User.empty() {
     return User(
       username: 'username',
-      fullname: 'fullname',
+      fullname: '77777777',
       email: 'user@email.com',
       bio: '',
       profilePicture: '',
       mobileNumber: '',
+      sharingLocation: false,
+      associatedColor: Color(0xFFAAAAAA),
       followers: [],
       following: [],
       location: Location.empty(),
@@ -59,6 +70,8 @@ class User {
       'bio': bio,
       'profile_picture': profilePicture,
       'mobile_number': mobileNumber,
+      'sharing_location': sharingLocation,
+      'associated_color': associatedColor,
       'followers': followers,
       'following': following,
       'location': location.toJson(),
@@ -72,6 +85,8 @@ class User {
     String? bio,
     String? profilePicture,
     String? mobileNumber,
+    bool? sharingLocation,
+    Color? associatedColor,
     List<String>? followers,
     List<String>? following,
     Location? location,
@@ -83,6 +98,8 @@ class User {
       bio: bio ?? this.bio,
       profilePicture: profilePicture ?? this.profilePicture,
       mobileNumber: mobileNumber ?? this.mobileNumber,
+      sharingLocation: sharingLocation ?? this.sharingLocation,
+      associatedColor: associatedColor ?? this.associatedColor,
       followers: followers ?? this.followers,
       following: following ?? this.following,
       location: location ?? this.location,

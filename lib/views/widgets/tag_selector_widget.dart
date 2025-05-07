@@ -33,73 +33,105 @@ class _TagSelectorState extends State<TagSelector> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 10),
-          child: Row(
-            children: [
-              Icon(Icons.tag_outlined),
-              SizedBox(width: 5),
-              Text("Event Tags", style: TextStyle(fontSize: 15)),
-            ],
+    final Color variantColor = Theme.of(context).colorScheme.onSurfaceVariant;
+
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: variantColor),
+        borderRadius: BorderRadius.circular(25),
+      ),
+      padding: EdgeInsets.all(2),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 10.0, top: 16.0),
+            child: Row(
+              children: [
+                Icon(Icons.style, color: variantColor),
+                SizedBox(width: 15),
+                Text(
+                  "Tags",
+                  style: TextStyle(fontSize: 16, color: variantColor),
+                ),
+              ],
+            ),
           ),
-        ),
-        SizedBox(height: 10),
-        if (_selectedTags.isNotEmpty)
+          SizedBox(height: 10),
+          if (_selectedTags.isNotEmpty)
+            Container(
+              padding: EdgeInsets.all(8),
+              child: Wrap(
+                spacing: 8.0,
+                runSpacing: 8.0,
+                children:
+                    _selectedTags.map((tag) {
+                      return Chip(
+                        label: Text(tag),
+                        onDeleted: () => _toggleTag(tag),
+                      );
+                    }).toList(),
+              ),
+            ),
           Container(
-            padding: EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              border: Border.all(color: Theme.of(context).colorScheme.primary),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Wrap(
-              spacing: 8.0,
-              runSpacing: 8.0,
-              children:
-                  _selectedTags.map((tag) {
-                    return Chip(
-                      label: Text(tag),
-                      onDeleted: () => _toggleTag(tag),
-                    );
-                  }).toList(),
+            padding: EdgeInsets.symmetric(horizontal: 4, vertical: 10),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children:
+                        List.generate(
+                          widget.tags.length,
+                          (i) => i,
+                        ).where((i) => i.isEven).map((i) {
+                          final tag = widget.tags[i];
+                          if (_selectedTags.contains(tag)) {
+                            return const SizedBox.shrink();
+                          }
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 4.0,
+                              vertical: 4.0,
+                            ),
+                            child: ChoiceChip(
+                              label: Text(tag),
+                              selected: false,
+                              onSelected: (_) => _toggleTag(tag),
+                            ),
+                          );
+                        }).toList(),
+                  ),
+                  Row(
+                    children:
+                        List.generate(
+                          widget.tags.length,
+                          (i) => i,
+                        ).where((i) => i.isOdd).map((i) {
+                          final tag = widget.tags[i];
+                          if (_selectedTags.contains(tag)) {
+                            return const SizedBox.shrink();
+                          }
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 4.0,
+                              vertical: 4.0,
+                            ),
+                            child: ChoiceChip(
+                              label: Text(tag),
+                              selected: false,
+                              onSelected: (_) => _toggleTag(tag),
+                            ),
+                          );
+                        }).toList(),
+                  ),
+                ],
+              ),
             ),
           ),
-        SizedBox(height: 10),
-        SizedBox(
-          height: 170,
-          child: SingleChildScrollView(
-            controller: ScrollController(initialScrollOffset: 250),
-            scrollDirection: Axis.horizontal,
-            child: Column(
-              children: List.generate(3, (index) {
-                return Row(
-                  children:
-                      widget.tags
-                          .where((tag) => !_selectedTags.contains(tag))
-                          .skip(index * (widget.tags.length ~/ 3))
-                          .take(widget.tags.length ~/ 3)
-                          .map((tag) {
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 4.0,
-                                vertical: 4.0,
-                              ),
-                              child: ChoiceChip(
-                                label: Text(tag),
-                                selected: false,
-                                onSelected: (_) => _toggleTag(tag),
-                              ),
-                            );
-                          })
-                          .toList(),
-                );
-              }),
-            ),
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

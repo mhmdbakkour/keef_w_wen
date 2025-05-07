@@ -130,11 +130,11 @@ class AppTextStyle {
   );
   static const TextStyle profileDataDesc = TextStyle(
     fontSize: 14,
-    fontWeight: FontWeight.w300,
+    fontWeight: FontWeight.w400,
   );
   static const TextStyle profileBio = TextStyle(
     fontSize: 14,
-    fontWeight: FontWeight.w200,
+    fontWeight: FontWeight.w300,
   );
 
   //Join Event Page

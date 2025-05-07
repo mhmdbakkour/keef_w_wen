@@ -17,6 +17,11 @@ class EventCardWidget extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final event = ref.watch(singleEventProvider(eventId));
     final User loggedUser = ref.watch(loggedUserProvider).user;
+    final locations = ref.watch(locationProvider).locations;
+
+    final eventLocation = locations.firstWhere(
+      (location) => event!.location == location.id,
+    );
 
     if (event == null) {
       return const Center(child: Text("Event not found"));
@@ -47,12 +52,14 @@ class EventCardWidget extends ConsumerWidget {
                     )
                     : Container(
                       height: 200,
+                      color:
+                          Theme.of(context).colorScheme.surfaceContainerHighest,
                       width: double.infinity,
-                      color: Colors.black38,
                       child: Center(
-                        child: Text(
-                          "No image available",
-                          style: TextStyle(fontSize: 25),
+                        child: Icon(
+                          Icons.broken_image,
+                          size: 50,
+                          color: Theme.of(context).colorScheme.error,
                         ),
                       ),
                     ),
@@ -75,22 +82,20 @@ class EventCardWidget extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     Icon(Icons.location_pin, size: 17, color: iconColor),
-                    SizedBox(width: 1),
                     Text(
-                      event.location.name,
+                      eventLocation.name,
                       style: AppTextStyle(context: context).eventCardData,
                     ),
                     VerticalDivider(),
                     Icon(
-                      event.seats > 0
+                      event.seats != 0
                           ? Icons.event_seat
                           : Icons.event_seat_outlined,
                       size: 17,
                       color: iconColor,
                     ),
-                    SizedBox(width: 1),
                     Text(
-                      "${event.seats}",
+                      event.seats != -1 ? "${event.seats}" : "∞",
                       style: AppTextStyle(context: context).eventCardData,
                     ),
                     VerticalDivider(),
@@ -101,20 +106,8 @@ class EventCardWidget extends ConsumerWidget {
                       size: 17,
                       color: iconColor,
                     ),
-                    SizedBox(width: 1),
                     Text(
                       event.openStatus ? "Open" : "Closed",
-                      style: AppTextStyle(context: context).eventCardData,
-                    ),
-                    VerticalDivider(),
-                    Icon(
-                      event.isPrivate ? Icons.visibility_off : Icons.visibility,
-                      size: 17,
-                      color: iconColor,
-                    ),
-                    SizedBox(width: 1),
-                    Text(
-                      event.isPrivate ? "Private" : "Public",
                       style: AppTextStyle(context: context).eventCardData,
                     ),
                     VerticalDivider(),

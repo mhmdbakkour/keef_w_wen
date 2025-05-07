@@ -1,45 +1,71 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class FormTextWidget extends StatelessWidget {
   const FormTextWidget({
     super.key,
-    required this.title,
+    required this.controller,
+    required this.label,
     required this.icon,
-    this.hidden,
-    this.focusNode,
-    this.controller,
+    this.fieldKey,
+    this.keyboardType,
+    this.inputFormatters,
+    this.maxLength,
+    this.maxLines,
+    this.validator,
     this.onEditingComplete,
-    this.onSubmitted,
-    this.errorText,
+    this.focusNode,
+    this.focusNodeNext,
+    this.obscureText = false,
   });
 
-  final String title;
-  final Icon icon;
-  final TextEditingController? controller;
-  final bool? hidden;
-  final FocusNode? focusNode;
+  final TextEditingController controller;
+  final String label;
+  final IconData icon;
+  final GlobalKey? fieldKey;
+  final TextInputType? keyboardType;
+  final List<TextInputFormatter>? inputFormatters;
+  final int? maxLength;
+  final int? maxLines;
+  final String? Function(String?)? validator;
   final VoidCallback? onEditingComplete;
-  final Function(String)? onSubmitted;
-  final String? errorText;
+  final FocusNode? focusNode;
+  final FocusNode? focusNodeNext;
+  final bool obscureText;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.only(left: 15, right: 15, top: 15, bottom: 8),
-      child: TextField(
-        focusNode: focusNode,
-        obscureText: hidden ?? false,
-        obscuringCharacter: '•',
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: TextFormField(
+        key: fieldKey,
+        maxLength: maxLength,
+        maxLines: maxLines ?? 1,
+        maxLengthEnforcement: MaxLengthEnforcement.enforced,
+        keyboardType: keyboardType,
+        buildCounter:
+            (
+              context, {
+              required currentLength,
+              required isFocused,
+              maxLength,
+            }) => null,
         controller: controller,
+        obscureText: obscureText,
+        validator: validator,
+        focusNode: focusNode,
         decoration: InputDecoration(
-          prefixIcon: icon,
-          labelText: title,
+          prefixIcon: Icon(icon),
+          labelText: label,
           floatingLabelAlignment: FloatingLabelAlignment.center,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(25)),
         ),
+        inputFormatters: inputFormatters,
+        onFieldSubmitted: (_) {
+          FocusScope.of(context).requestFocus(focusNodeNext);
+        },
         onEditingComplete: onEditingComplete,
-        onSubmitted: onSubmitted,
-        onTapOutside: (event) => FocusScope.of(context).unfocus(),
+        onTapOutside: (_) => FocusScope.of(context).unfocus(),
       ),
     );
   }

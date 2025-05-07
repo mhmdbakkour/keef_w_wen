@@ -13,6 +13,8 @@ class EventTabWidget extends ConsumerStatefulWidget {
 }
 
 class _EventTabState extends ConsumerState<EventTabWidget> {
+  //TODO: Filter events based on category
+  // Right now it shows all events
   String eventFilter = "Saved Events"; // Default filter
 
   @override
@@ -21,6 +23,7 @@ class _EventTabState extends ConsumerState<EventTabWidget> {
     final events = ref.watch(eventProvider).events;
 
     List<String> eventIds = [];
+    //TODO: Show only the events that have been saved/liked
     if (eventFilter == "Saved Events") {
       eventIds =
           events.map((event) => event.id).toList(); //loggedUser.savedEvents;
@@ -41,12 +44,7 @@ class _EventTabState extends ConsumerState<EventTabWidget> {
     } else if (eventFilter == "Owned Events") {
       eventIds =
           events
-              .where(
-                (event) => event.participants.any(
-                  (p) =>
-                      p.username == loggedUser.username && (p.isOwner ?? false),
-                ),
-              )
+              .where((event) => event.hostOwner == loggedUser.username)
               .map((event) => event.id)
               .toList();
     }
@@ -58,59 +56,113 @@ class _EventTabState extends ConsumerState<EventTabWidget> {
 
     return Column(
       children: [
-        // Filter Buttons
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            IconButton(
-              color:
-                  eventFilter == "Saved Events"
-                      ? Theme.of(context).colorScheme.primary
-                      : null,
-              onPressed: () {
-                setState(() {
-                  eventFilter = "Saved Events";
-                });
-              },
-              icon: Icon(Icons.bookmark),
-            ),
-            IconButton(
-              color:
-                  eventFilter == "Liked Events"
-                      ? Theme.of(context).colorScheme.primary
-                      : null,
-              onPressed: () {
-                setState(() {
-                  eventFilter = "Liked Events";
-                });
-              },
-              icon: Icon(Icons.favorite),
-            ),
-            IconButton(
-              color:
-                  eventFilter == "Hosted Events"
-                      ? Theme.of(context).colorScheme.primary
-                      : null,
-              onPressed: () {
-                setState(() {
-                  eventFilter = "Hosted Events";
-                });
-              },
-              icon: Icon(Icons.event),
-            ),
-            IconButton(
-              color:
-                  eventFilter == "Owned Events"
-                      ? Theme.of(context).colorScheme.primary
-                      : null,
-              onPressed: () {
-                setState(() {
-                  eventFilter = "Owned Events";
-                });
-              },
-              icon: Icon(Icons.workspace_premium),
-            ),
-          ],
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              InkWell(
+                onTap: () {
+                  setState(() {
+                    eventFilter = "Saved Events";
+                  });
+                },
+                child: Container(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.bookmark,
+                        color:
+                            eventFilter == "Saved Events"
+                                ? Theme.of(context).colorScheme.primary
+                                : Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                      ),
+                      Text("Saved", style: TextStyle(fontSize: 10)),
+                    ],
+                  ),
+                ),
+              ),
+              InkWell(
+                onTap: () {
+                  setState(() {
+                    eventFilter = "Liked Events";
+                  });
+                },
+                child: Container(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.favorite,
+                        color:
+                            eventFilter == "Liked Events"
+                                ? Theme.of(context).colorScheme.primary
+                                : Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                      ),
+                      Text("Liked", style: TextStyle(fontSize: 10)),
+                    ],
+                  ),
+                ),
+              ),
+              InkWell(
+                onTap: () {
+                  setState(() {
+                    eventFilter = "Hosted Events";
+                  });
+                },
+                child: Container(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.event,
+                        color:
+                            eventFilter == "Hosted Events"
+                                ? Theme.of(context).colorScheme.primary
+                                : Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                      ),
+                      Text("Hosted", style: TextStyle(fontSize: 10)),
+                    ],
+                  ),
+                ),
+              ),
+              InkWell(
+                onTap: () {
+                  setState(() {
+                    eventFilter = "Owned Events";
+                  });
+                },
+                child: Container(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.workspace_premium,
+                        color:
+                            eventFilter == "Owned Events"
+                                ? Theme.of(context).colorScheme.primary
+                                : Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                      ),
+                      Text("Owned", style: TextStyle(fontSize: 10)),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
         Expanded(
           child:

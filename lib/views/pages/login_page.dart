@@ -16,6 +16,7 @@ class LoginPage extends ConsumerStatefulWidget {
 }
 
 class _LoginPageState extends ConsumerState<LoginPage> {
+  final _formKey = GlobalKey<FormState>();
   final TextEditingController controllerUsername = TextEditingController(
     text: "janedoe",
   );
@@ -43,7 +44,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    final UserRepository repository = ref.read(userRepositoryProvider);
+    final repository = ref.read(userRepositoryProvider);
     final loggedUserNotifier = ref.read(loggedUserProvider.notifier);
 
     return Scaffold(
@@ -51,88 +52,92 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       appBar: AppBar(),
       body: Center(
         child: SingleChildScrollView(
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SizedBox(height: 60.0),
-                  Text("Log In", style: TextStyle(fontSize: 40.0)),
-                  Padding(
-                    padding: const EdgeInsets.all(15.0),
-                    child: Hero(
-                      tag: 'hero1',
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(20.0),
-                        child: Column(
-                          children: [
-                            FormTextWidget(
-                              title: 'Username',
-                              icon: Icon(Icons.person),
-                              controller: controllerUsername,
-                              focusNode: usernameFocusNode,
-                              onSubmitted: (_) {
-                                FocusScope.of(
-                                  context,
-                                ).requestFocus(passwordFocusNode);
-                              },
+          child: Padding(
+            padding: const EdgeInsets.all(15.0),
+            child: Column(
+              children: [
+                const SizedBox(height: 60.0),
+                const Text("Log In", style: TextStyle(fontSize: 40.0)),
+                const SizedBox(height: 20),
+                Hero(
+                  tag: 'hero1',
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(20.0),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        children: [
+                          FormTextWidget(
+                            label: "Username",
+                            icon: Icons.person,
+                            controller: controllerUsername,
+                            focusNode: usernameFocusNode,
+                            focusNodeNext: passwordFocusNode,
+                            validator:
+                                (value) =>
+                                    value == null || value.isEmpty
+                                        ? 'Enter your username'
+                                        : null,
+                          ),
+                          const SizedBox(height: 12),
+                          FormTextWidget(
+                            label: "Password",
+                            icon: Icons.lock,
+                            controller: controllerPassword,
+                            focusNode: passwordFocusNode,
+                            obscureText: true,
+                            validator:
+                                (value) =>
+                                    value == null || value.isEmpty
+                                        ? 'Enter your password'
+                                        : null,
+                            onEditingComplete: () async {
+                              if (_formKey.currentState != null &&
+                                  _formKey.currentState!.validate()) {
+                                await _login(repository, loggedUserNotifier);
+                              }
+                            },
+                          ),
+                          if (submissionError)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 10),
+                              child: Text(
+                                "Invalid username or password",
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.error,
+                                ),
+                              ),
                             ),
-                            FormTextWidget(
-                              title: 'Password',
-                              icon: Icon(Icons.lock),
-                              controller: controllerPassword,
-                              focusNode: passwordFocusNode,
-                              hidden: true,
-                              onEditingComplete: () async {
-                                _login(repository, loggedUserNotifier);
-                              },
-                              onSubmitted: (_) {
-                                FocusScope.of(context).unfocus();
-                              },
-                            ),
-                            submissionError
-                                ? Text(
-                                  "Invalid username or password",
-                                  style: TextStyle(
-                                    color: Theme.of(context).colorScheme.error,
-                                  ),
-                                )
-                                : SizedBox.shrink(),
-                          ],
-                        ),
+                        ],
                       ),
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(15.0),
-                    child: FilledButton(
-                      onPressed: () async {
-                        _login(repository, loggedUserNotifier);
-                      },
-                      child: Text("Login"),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) {
-                            return RegisterPage();
-                          },
-                        ),
-                      );
-                    },
-                    child: Text("Don't have an account? Register now!"),
-                  ),
-                  TextButton(
-                    onPressed: () {},
-                    child: Text("Forgot password? Reset now!"),
-                  ),
-                ],
-              ),
-            ],
+                ),
+                const SizedBox(height: 20),
+                FilledButton(
+                  onPressed: () async {
+                    if (_formKey.currentState != null &&
+                        _formKey.currentState!.validate()) {
+                      await _login(repository, loggedUserNotifier);
+                    }
+                  },
+                  child: const Text("Login"),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const RegisterPage()),
+                    );
+                  },
+                  child: const Text("Don't have an account? Register now!"),
+                ),
+                TextButton(
+                  onPressed: () {},
+                  child: const Text("Forgot password? Reset now!"),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -151,34 +156,28 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       );
 
       await repository.saveTokens(tokens['access'], tokens['refresh']);
-
       final currentUser = await repository.fetchCurrentUser();
-
       if (!mounted) return;
       loggedUserNotifier.setUser(currentUser);
 
       if (mounted) {
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) => MainView(),
-            transitionsBuilder: (
-              context,
-              animation,
-              secondaryAnimation,
-              child,
-            ) {
-              return FadeTransition(opacity: animation, child: child);
-            },
-            transitionDuration: Duration(milliseconds: 300),
+            settings: RouteSettings(name: '/main'),
+            pageBuilder:
+                (context, animation, secondaryAnimation) => const MainView(),
+            transitionsBuilder:
+                (context, animation, _, child) =>
+                    FadeTransition(opacity: animation, child: child),
+            transitionDuration: const Duration(milliseconds: 300),
           ),
         );
       }
     } catch (e) {
       setState(() {
         submissionError = true;
-        print(submissionError);
       });
-      throw Exception(e);
+      throw Exception("Could not login: $e");
     }
   }
 }

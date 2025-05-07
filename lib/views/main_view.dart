@@ -30,6 +30,7 @@ class _MainViewState extends ConsumerState<MainView> {
     Future.microtask(() {
       ref.read(eventProvider.notifier).fetchEvents();
       ref.read(userProvider.notifier).fetchUsers();
+      ref.read(locationProvider.notifier).fetchLocations();
     });
   }
 
@@ -54,7 +55,7 @@ class _MainViewState extends ConsumerState<MainView> {
       EventsPage(),
       MapPage(),
       PeoplePage(),
-      ProfilePage(),
+      ProfilePage(loggedUser: loggedUser),
     ];
 
     return PopScope(
@@ -104,15 +105,13 @@ class _MainViewState extends ConsumerState<MainView> {
             ),
           ],
         ),
-        body: PageView(
-          physics: NeverScrollableScrollPhysics(),
-          controller: _pageController,
-          onPageChanged: (index) {
-            selectedPageNotifier.value = index;
+        body: ValueListenableBuilder(
+          valueListenable: selectedPageNotifier,
+          builder: (context, value, child) {
+            return IndexedStack(index: value, children: pages);
           },
-          children: pages,
         ),
-        bottomNavigationBar: NavbarWidget(pageController: _pageController),
+        bottomNavigationBar: NavbarWidget(),
       ),
     );
   }

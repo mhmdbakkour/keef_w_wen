@@ -9,7 +9,6 @@ import 'package:keef_w_wen/views/widgets/rating_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../classes/data/event.dart';
 import '../../classes/data/event_image.dart';
-import '../../classes/data/location.dart';
 import '../../classes/data/user.dart';
 import '../../classes/providers.dart';
 import 'event_lobby_page.dart';
@@ -25,6 +24,11 @@ class EventDetailsPage extends ConsumerWidget {
     final Event? event = ref.watch(singleEventProvider(eventId));
     List<User> users = ref.watch(userProvider).users;
     User? loggedUser = ref.watch(loggedUserProvider).user;
+    final locations = ref.watch(locationProvider).locations;
+
+    final eventLocation = locations.firstWhere(
+      (location) => location.id == event!.location,
+    );
 
     if (event == null) {
       return const Center(child: Text("Event not found"));
@@ -41,14 +45,14 @@ class EventDetailsPage extends ConsumerWidget {
     final String description = event.description;
     final String thumbnail = event.thumbnail;
     final List<EventImage> images = event.images;
-    final User hostOwner = event.hostOwner;
-    final Location location = event.location;
+    final String hostOwner = event.hostOwner;
     final bool isPrivate = event.isPrivate;
-    final bool hasIdentification = event.needsId;
+    final bool needsId = event.needsId;
     final DateTime dateStart = event.dateStart;
     final bool openStatus = event.openStatus;
     final DateTime dateClosed = event.dateClosed;
     final int seats = event.seats;
+    //TODO: Remove like count and implement the likes thing
     final int likes = 5;
     final double price = event.price;
     final double rating = event.rating;
@@ -78,9 +82,47 @@ class EventDetailsPage extends ConsumerWidget {
                       itemCount: event.images.length + 1,
                       itemBuilder: (context, index) {
                         if (index == 0) {
-                          return _buildImage(context, thumbnail);
+                          return thumbnail.isNotEmpty
+                              ? _buildImage(context, thumbnail)
+                              : Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12),
+                                  color:
+                                      Theme.of(
+                                        context,
+                                      ).colorScheme.surfaceContainerHighest,
+                                ),
+                                width:
+                                    MediaQuery.of(context).size.width * 0.925,
+                                child: Center(
+                                  child: Icon(
+                                    Icons.broken_image,
+                                    size: 50,
+                                    color: Theme.of(context).colorScheme.error,
+                                  ),
+                                ),
+                              );
                         } else {
-                          return _buildImage(context, images[index - 1].image);
+                          return images.isNotEmpty
+                              ? _buildImage(context, images[index - 1].image)
+                              : Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12),
+                                  color:
+                                      Theme.of(
+                                        context,
+                                      ).colorScheme.surfaceContainerHighest,
+                                ),
+                                width:
+                                    MediaQuery.of(context).size.width * 0.925,
+                                child: Center(
+                                  child: Icon(
+                                    Icons.broken_image,
+                                    size: 50,
+                                    color: Theme.of(context).colorScheme.error,
+                                  ),
+                                ),
+                              );
                         }
                       },
                     ),
@@ -90,7 +132,9 @@ class EventDetailsPage extends ConsumerWidget {
                   SizedBox(height: 10),
                   ListTile(
                     title: Text(
-                      hostOwner.fullname,
+                      users
+                          .firstWhere((user) => user.username == hostOwner)
+                          .fullname,
                       style: AppTextStyle(context: context).eventDetailsBrief,
                     ),
                     subtitle: Text(
@@ -101,7 +145,7 @@ class EventDetailsPage extends ConsumerWidget {
                   ),
                   ListTile(
                     title: Text(
-                      location.name,
+                      eventLocation.name,
                       style: AppTextStyle(context: context).eventDetailsBrief,
                     ),
                     subtitle: Text(
@@ -127,14 +171,17 @@ class EventDetailsPage extends ConsumerWidget {
                   ),
                   ListTile(
                     title: Text(
-                      hasIdentification ? "Required" : "Not required",
+                      needsId ? "ID required" : "Anyone can attend",
                       style: AppTextStyle(context: context).eventDetailsBrief,
                     ),
                     subtitle: Text(
                       "Attendee identification requirement",
                       style: AppTextStyle.eventDetailsSubTitle,
                     ),
-                    leading: Icon(Icons.verified, color: detailColor),
+                    leading: Icon(
+                      needsId ? Icons.badge : Icons.public,
+                      color: detailColor,
+                    ),
                   ),
                   ListTile(
                     title: Text(
@@ -171,7 +218,9 @@ class EventDetailsPage extends ConsumerWidget {
                   ),
                   ListTile(
                     title: Text(
-                      "$seats seats available",
+                      seats != -1
+                          ? "$seats seats available"
+                          : "Unlimited seats available",
                       style: AppTextStyle(context: context).eventDetailsBrief,
                     ),
                     subtitle: Text(
@@ -193,7 +242,9 @@ class EventDetailsPage extends ConsumerWidget {
                   ),
                   ListTile(
                     title: Text(
-                      "${price.floor().toString()} US dollars",
+                      price > 0
+                          ? "${price.toString()} US dollars"
+                          : "Free of charge",
                       style: AppTextStyle(context: context).eventDetailsBrief,
                     ),
                     subtitle: Text(

@@ -18,6 +18,11 @@ class JoinEventPage extends ConsumerWidget {
     final Event? event = ref.watch(singleEventProvider(eventId));
     User? loggedUser = ref.watch(loggedUserProvider).user;
     List<User> users = ref.watch(userProvider).users;
+    final locations = ref.watch(locationProvider).locations;
+
+    final eventLocation = locations.firstWhere(
+      (location) => event!.location == location.id,
+    );
 
     if (event == null) {
       return const Scaffold(body: Center(child: Text("Event not found")));
@@ -56,7 +61,7 @@ class JoinEventPage extends ConsumerWidget {
                     style: AppTextStyle.joinEventDate,
                   ),
                   Text(
-                    event.location.name,
+                    eventLocation.name,
                     style: AppTextStyle.joinEventLocation,
                   ),
                   SizedBox(height: 8),
@@ -74,15 +79,19 @@ class JoinEventPage extends ConsumerWidget {
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children:
-                          event.participants.map((participant) {
-                            User user = users.firstWhere(
-                              (user) => user.username == participant.username,
-                            );
-                            return Padding(
-                              padding: const EdgeInsets.only(right: 5),
-                              child: UserAvatarWidget(user: user),
-                            );
-                          }).toList(),
+                          event.participants.isNotEmpty
+                              ? event.participants.map((participant) {
+                                User user = users.firstWhere(
+                                  (user) =>
+                                      user.username == participant.username,
+                                  orElse: () => User.empty(),
+                                );
+                                return Padding(
+                                  padding: const EdgeInsets.only(right: 5),
+                                  child: UserAvatarWidget(user: user),
+                                );
+                              }).toList()
+                              : [],
                     ),
                   ),
                   SizedBox(height: 16),

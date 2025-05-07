@@ -16,11 +16,11 @@ class HomePage extends ConsumerStatefulWidget {
 }
 
 class _HomePageState extends ConsumerState<HomePage> {
-  List<Event> events = [];
+  late List<Event> events;
 
   @override
   Widget build(BuildContext context) {
-    final headingColor = Theme.of(context).colorScheme.tertiary;
+    final headingColor = Theme.of(context).colorScheme.tertiaryContainer;
 
     return Consumer(
       builder: (context, ref, child) {

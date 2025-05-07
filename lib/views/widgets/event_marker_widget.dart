@@ -10,6 +10,8 @@ class EventMarker extends Marker {
     required String title,
     required String thumbnail,
     required Color color,
+    Color? iconErrorColor,
+    Color? errorColor,
   }) : super(
          point: coordinates,
          rotate: true,
@@ -23,6 +25,7 @@ class EventMarker extends Marker {
              children: [
                // Title text
                Container(
+                 constraints: BoxConstraints(minHeight: 30, minWidth: 100),
                  padding: const EdgeInsets.symmetric(
                    horizontal: 6,
                    vertical: 2,
@@ -38,16 +41,18 @@ class EventMarker extends Marker {
                      ),
                    ],
                  ),
-                 child: Text(
-                   title,
-                   style: const TextStyle(
-                     fontSize: 10,
-                     fontWeight: FontWeight.w600,
-                     color: Colors.white,
+                 child: Center(
+                   child: Text(
+                     title,
+                     style: const TextStyle(
+                       fontSize: 10,
+                       fontWeight: FontWeight.w600,
+                       color: Colors.white,
+                     ),
+                     maxLines: 2,
+                     textAlign: TextAlign.center,
+                     overflow: TextOverflow.ellipsis,
                    ),
-                   maxLines: 2,
-                   textAlign: TextAlign.center,
-                   overflow: TextOverflow.ellipsis,
                  ),
                ),
                Stack(
@@ -61,8 +66,21 @@ class EventMarker extends Marker {
                      top: 6,
                      child: CircleAvatar(
                        radius: 20,
-                       backgroundImage: NetworkImage(thumbnail),
-                       backgroundColor: Colors.white,
+                       backgroundImage:
+                           thumbnail.isNotEmpty
+                               ? NetworkImage(thumbnail)
+                               : null,
+                       backgroundColor:
+                           thumbnail.isNotEmpty
+                               ? color
+                               : errorColor ?? Colors.white,
+                       child:
+                           thumbnail.isNotEmpty
+                               ? null
+                               : Icon(
+                                 Icons.broken_image,
+                                 color: iconErrorColor ?? Colors.red,
+                               ),
                      ),
                    ),
                  ],

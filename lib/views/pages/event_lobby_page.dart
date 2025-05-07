@@ -7,6 +7,7 @@ import 'package:keef_w_wen/views/widgets/event_map_view_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../classes/data/event.dart';
+import '../../classes/data/location.dart';
 import '../../classes/data/user.dart';
 import '../../classes/providers.dart';
 import '../widgets/user_avatar_widget.dart';
@@ -27,6 +28,7 @@ class _EventLobbyPageState extends ConsumerState<EventLobbyPage> {
   Timer? countdownTimer;
   Duration timeDiff = Duration.zero;
   DateTime? eventStartTime;
+  late Location eventLocation;
 
   User? loggedUser;
 
@@ -57,7 +59,12 @@ class _EventLobbyPageState extends ConsumerState<EventLobbyPage> {
   Widget build(BuildContext context) {
     final event = ref.watch(singleEventProvider(widget.eventId));
     loggedUser = ref.watch(loggedUserProvider).user;
-    final List<User> users = ref.watch(userProvider).users;
+    final users = ref.watch(userProvider).users;
+    final locations = ref.watch(locationProvider).locations;
+
+    eventLocation = locations.firstWhere(
+      (location) => event!.location == location.id,
+    );
 
     if (event == null) {
       return const Scaffold(body: Center(child: Text("Event not found")));
@@ -112,10 +119,7 @@ class _EventLobbyPageState extends ConsumerState<EventLobbyPage> {
               style: AppTextStyle(context: context).eventLobbyCardTitle,
             ),
             SizedBox(height: 8),
-            Text(
-              event.location.name,
-              style: AppTextStyle.eventLobbyCardLocation,
-            ),
+            Text(event.location, style: AppTextStyle.eventLobbyCardLocation),
             SizedBox(height: 8),
             Text(
               "Organized by ${users.firstWhere((user) => user.username == event.hostOwner).fullname}",
@@ -349,7 +353,7 @@ class _EventLobbyPageState extends ConsumerState<EventLobbyPage> {
           child: EventMapView(
             title: event.title,
             thumbnail: event.thumbnail,
-            coordinates: event.location.coordinates,
+            coordinates: eventLocation.coordinates,
           ),
         ),
       ),
@@ -447,7 +451,11 @@ class _EventLobbyPageState extends ConsumerState<EventLobbyPage> {
                           backgroundImage: AssetImage(hostUser.profilePicture!),
                         )
                         : CircleAvatar(child: Text(hostUser.fullname[0])),
-                title: Text(event.hostOwner.username),
+                title: Text(
+                  users
+                      .firstWhere((user) => user.username == event.hostOwner)
+                      .username,
+                ),
                 subtitle: Text("Removed ${users[index].fullname}"),
               );
             },
@@ -480,7 +488,7 @@ class _EventLobbyPageState extends ConsumerState<EventLobbyPage> {
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 subtitle: Text(
-                  event.location.name,
+                  eventLocation.name,
                   style: TextStyle(fontSize: 16, color: Colors.grey[700]),
                 ),
                 trailing: IconButton(
@@ -502,7 +510,7 @@ class _EventLobbyPageState extends ConsumerState<EventLobbyPage> {
                   onPressed: () async {
                     final scaffoldMessenger = ScaffoldMessenger.of(context);
                     final Uri googleMapUrl = Uri.parse(
-                      "https://www.google.com/maps/search/?api=1&query=${event.location.coordinates.latitude},${event.location.coordinates.longitude}",
+                      "https://www.google.com/maps/search/?api=1&query=${eventLocation.coordinates.latitude},${eventLocation.coordinates.longitude}",
                     );
                     if (await canLaunchUrl(googleMapUrl)) {
                       await launchUrl(
