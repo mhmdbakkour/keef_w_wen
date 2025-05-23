@@ -3,23 +3,18 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:keef_w_wen/classes/providers.dart';
-import 'package:keef_w_wen/classes/repositories/user_repository.dart';
-import 'package:keef_w_wen/views/pages/login_page.dart';
 import 'dart:io';
 import '../../services/phone_formatter.dart';
 import '../widgets/form_text_widget.dart';
 
-class RegisterDetailsPage extends ConsumerStatefulWidget {
-  const RegisterDetailsPage({super.key, required this.requiredUserData});
-
-  final Map<String, dynamic> requiredUserData;
+class EditUserPage extends ConsumerStatefulWidget {
+  const EditUserPage({super.key});
 
   @override
-  ConsumerState<RegisterDetailsPage> createState() =>
-      _RegisterDetailsPageState();
+  ConsumerState<EditUserPage> createState() => _EditUserPageState();
 }
 
-class _RegisterDetailsPageState extends ConsumerState<RegisterDetailsPage> {
+class _EditUserPageState extends ConsumerState<EditUserPage> {
   final _formKey = GlobalKey<FormState>();
 
   final TextEditingController controllerFullname = TextEditingController();
@@ -54,40 +49,46 @@ class _RegisterDetailsPageState extends ConsumerState<RegisterDetailsPage> {
     }
   }
 
-  Future<void> submitDetails(UserRepository repository, bool hasSkipped) async {
-    Map<String, dynamic> allUserData = widget.requiredUserData;
-    if (!hasSkipped) {
-      Map<String, dynamic> extraUserData = {
-        'fullname': controllerFullname.text.trim(),
-        'bio': controllerBio.text.trim(),
-        'mobile_number':
-            '+961${controllerMobileNumber.text.replaceAll(RegExp(r'\D'), '')}',
-        'sharing_location': sharingLocation,
-      };
-      allUserData.addAll(extraUserData);
-      if (_formKey.currentState?.validate() ?? false) {
-        _formKey.currentState?.save();
-        await repository.register(allUserData, profileImage);
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => LoginPage()),
-        );
-      }
-    } else {
-      await repository.register(allUserData, profileImage);
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => LoginPage()),
+  Future<void> submitDetails() async {
+    final loggedUser = ref.read(loggedUserProvider).user;
+    final loggedUserNotifier = ref.read(loggedUserProvider.notifier);
+    Map<String, dynamic> userData = {
+      'fullname': controllerFullname.text.trim(),
+      'bio': controllerBio.text.trim(),
+      'mobile_number':
+          '+961${controllerMobileNumber.text.replaceAll(RegExp(r'\D'), '')}',
+      'sharing_location': sharingLocation,
+    };
+    if (_formKey.currentState?.validate() ?? false) {
+      _formKey.currentState?.save();
+      await loggedUserNotifier.updateUser(
+        loggedUser.username,
+        userData,
+        profileImage,
       );
+      Navigator.pushNamed(context, "/main");
     }
   }
 
   @override
+  void initState() {
+    super.initState();
+    final loggedUser = ref.read(loggedUserProvider).user;
+    controllerFullname.text = loggedUser.fullname;
+    controllerMobileNumber.text = loggedUser.mobileNumber.replaceFirst(
+      '+961',
+      '',
+    );
+    controllerBio.text = loggedUser.bio;
+    sharingLocation = loggedUser.sharingLocation;
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final repository = ref.read(userRepositoryProvider);
+    final loggedUser = ref.read(loggedUserProvider).user;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Continue registration')),
+      appBar: AppBar(title: const Text('Edit profile')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -104,11 +105,17 @@ class _RegisterDetailsPageState extends ConsumerState<RegisterDetailsPage> {
                       backgroundImage:
                           profileImage != null
                               ? FileImage(profileImage!)
+                              : loggedUser.profilePicture != null &&
+                                  loggedUser.profilePicture!.isNotEmpty
+                              ? NetworkImage(loggedUser.profilePicture!)
                               : null,
                       child:
-                          profileImage == null
-                              ? const Icon(Icons.camera_alt, size: 40)
-                              : null,
+                          loggedUser.profilePicture != null &&
+                                  loggedUser.profilePicture!.isNotEmpty
+                              ? profileImage != null
+                                  ? null
+                                  : null
+                              : const Icon(Icons.camera_alt, size: 40),
                     ),
                   ),
                 ),
@@ -175,7 +182,7 @@ class _RegisterDetailsPageState extends ConsumerState<RegisterDetailsPage> {
                 ElevatedButton(
                   onPressed: () {
                     try {
-                      submitDetails(repository, false);
+                      submitDetails();
                       ScaffoldMessenger.of(
                         context,
                       ).showSnackBar(SnackBar(content: Text("User updated")));
@@ -185,22 +192,7 @@ class _RegisterDetailsPageState extends ConsumerState<RegisterDetailsPage> {
                       );
                     }
                   },
-                  child: const Text('Complete registration'),
-                ),
-                TextButton(
-                  onPressed: () {
-                    try {
-                      submitDetails(repository, true);
-                      ScaffoldMessenger.of(
-                        context,
-                      ).showSnackBar(SnackBar(content: Text("User updated")));
-                    } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("Failed to update user")),
-                      );
-                    }
-                  },
-                  child: const Text('Skip for now'),
+                  child: const Text('Edit info'),
                 ),
               ],
             ),

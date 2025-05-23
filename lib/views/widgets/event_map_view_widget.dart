@@ -20,6 +20,7 @@ class EventMapView extends StatefulWidget {
   State<EventMapView> createState() => _EventMapViewState();
 }
 
+//TODO: Add more controls and maybe implement routing
 class _EventMapViewState extends State<EventMapView> {
   final MapController mapController = MapController();
   double currentZoom = 13.0;

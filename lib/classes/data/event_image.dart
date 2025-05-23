@@ -1,13 +1,13 @@
 class EventImage {
   final String id;
   final String event;
-  final String image;
+  final String url;
   final DateTime dateUploaded;
 
   EventImage({
     required this.id,
     required this.event,
-    required this.image,
+    required this.url,
     required this.dateUploaded,
   });
 
@@ -15,7 +15,7 @@ class EventImage {
     return EventImage(
       id: json['id'] ?? '',
       event: json['event'] ?? '',
-      image: json['image'] ?? '',
+      url: json['image'] ?? '',
       dateUploaded: DateTime.parse(
         json['date_uploaded'] ?? '1970-01-01T00:00:00Z',
       ),
@@ -26,7 +26,7 @@ class EventImage {
     return {
       'id': id,
       'event': event,
-      'image': image,
+      'image': url,
       'date_uploaded': dateUploaded.toIso8601String(),
     };
   }
@@ -40,7 +40,7 @@ class EventImage {
     return EventImage(
       id: id ?? this.id,
       event: eventId ?? this.event,
-      image: image ?? this.image,
+      url: image ?? this.url,
       dateUploaded: dateUploaded ?? this.dateUploaded,
     );
   }
@@ -49,7 +49,7 @@ class EventImage {
     return EventImage(
       id: '',
       event: '',
-      image: '',
+      url: '',
       dateUploaded: DateTime.parse('1970-01-01T00:00:00Z'),
     );
   }

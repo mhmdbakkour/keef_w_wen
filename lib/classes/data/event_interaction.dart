@@ -4,7 +4,8 @@ class EventInteraction {
   final String eventId;
   final bool liked;
   final bool saved;
-  final DateTime dateInteracted;
+  final int likesCount;
+  final int savesCount;
 
   EventInteraction({
     required this.id,
@@ -12,7 +13,8 @@ class EventInteraction {
     required this.eventId,
     required this.liked,
     required this.saved,
-    required this.dateInteracted,
+    required this.likesCount,
+    required this.savesCount,
   });
 
   Map<String, dynamic> toJson() {
@@ -32,7 +34,8 @@ class EventInteraction {
       eventId: json['event'],
       liked: json['liked'],
       saved: json['saved'],
-      dateInteracted: json['date_interacted'],
+      likesCount: json['likes_count'],
+      savesCount: json['saves_count'],
     );
   }
 
@@ -42,7 +45,8 @@ class EventInteraction {
     String? eventId,
     bool? liked,
     bool? saved,
-    DateTime? dateInteracted,
+    int? likesCount,
+    int? savesCount,
   }) {
     return EventInteraction(
       id: id ?? this.id,
@@ -50,7 +54,8 @@ class EventInteraction {
       eventId: eventId ?? this.eventId,
       liked: liked ?? this.liked,
       saved: saved ?? this.saved,
-      dateInteracted: dateInteracted ?? this.dateInteracted,
+      likesCount: likesCount ?? this.likesCount,
+      savesCount: savesCount ?? this.savesCount,
     );
   }
 
@@ -61,7 +66,8 @@ class EventInteraction {
       eventId: '',
       liked: false,
       saved: false,
-      dateInteracted: DateTime.parse('1970-01-01T00:00:00Z'),
+      likesCount: 0,
+      savesCount: 0,
     );
   }
 }

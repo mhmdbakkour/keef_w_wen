@@ -101,6 +101,7 @@ class _EventLocationPickerState extends State<EventLocationPicker> {
               MarkerLayer(
                 markers: [
                   Marker(
+                    rotate: true,
                     alignment: Alignment.topCenter,
                     width: 40,
                     height: 40,
@@ -117,6 +118,7 @@ class _EventLocationPickerState extends State<EventLocationPicker> {
               MarkerLayer(
                 markers: [
                   Marker(
+                    rotate: true,
                     alignment: Alignment.topCenter,
                     width: 40,
                     height: 40,

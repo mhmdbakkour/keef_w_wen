@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:keef_w_wen/classes/repositories/user_repository.dart';
+import 'package:keef_w_wen/classes/notifiers/logged_user_notifier.dart';
 import '../../classes/data/event.dart';
 import '../../classes/data/user.dart';
 import '../../classes/providers.dart';
@@ -36,16 +36,14 @@ class _ViewProfilePageState extends ConsumerState<ViewProfilePage> {
   Widget build(BuildContext context) {
     List<Event> events = ref.watch(eventProvider).events;
     User loggedUser = ref.watch(loggedUserProvider).user;
-    final repository = ref.read(userRepositoryProvider);
+    final loggedUserNotifier = ref.read(loggedUserProvider.notifier);
 
     followers =
         ref.watch(userFollowersProvider(widget.user.username)).followers;
     following =
         ref.watch(userFollowersProvider(widget.user.username)).following;
 
-    setState(() {
-      hasFollowed = followers.contains(loggedUser.username);
-    });
+    hasFollowed = followers.contains(loggedUser.username);
 
     return Scaffold(
       appBar: AppBar(title: Text("${widget.user.username}'s Profile")),
@@ -61,7 +59,7 @@ class _ViewProfilePageState extends ConsumerState<ViewProfilePage> {
                   .where((event) => event.hostOwner == widget.user.username)
                   .length,
             ),
-            _buildProfileActions(widget.user, loggedUser, repository),
+            _buildProfileActions(widget.user, loggedUser, loggedUserNotifier),
             _buildUserBio(widget.user),
             _buildPublicEvents(widget.user, context, events),
           ],
@@ -138,7 +136,7 @@ class _ViewProfilePageState extends ConsumerState<ViewProfilePage> {
   Widget _buildProfileActions(
     User user,
     User loggedUser,
-    UserRepository repository,
+    LoggedUserNotifier notifier,
   ) {
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -157,7 +155,7 @@ class _ViewProfilePageState extends ConsumerState<ViewProfilePage> {
               });
 
               try {
-                await repository.followUser(loggedUser.username, user.username);
+                await notifier.followUser(user.username);
               } catch (e) {
                 print("Error following/unfollowing: $e");
               }

@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 
 class TagSelector extends StatefulWidget {
   final List<String> tags;
+  final List<String>? currentTags;
   final Function(List<String>) onSelectionChanged;
 
   const TagSelector({
     super.key,
     required this.tags,
+    this.currentTags,
     required this.onSelectionChanged,
   });
 
@@ -15,7 +17,7 @@ class TagSelector extends StatefulWidget {
 }
 
 class _TagSelectorState extends State<TagSelector> {
-  final List<String> _selectedTags = [];
+  late List<String> _selectedTags;
   final int _maxTags = 5;
 
   void _toggleTag(String tag) {
@@ -29,6 +31,12 @@ class _TagSelectorState extends State<TagSelector> {
       }
       widget.onSelectionChanged(_selectedTags);
     });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedTags = [...widget.currentTags ?? []];
   }
 
   @override

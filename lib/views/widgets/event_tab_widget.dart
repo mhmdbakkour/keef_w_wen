@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../../classes/data/event.dart';
 import '../../classes/providers.dart';
 import 'event_swatch_widget.dart';
@@ -13,23 +12,35 @@ class EventTabWidget extends ConsumerStatefulWidget {
 }
 
 class _EventTabState extends ConsumerState<EventTabWidget> {
-  //TODO: Filter events based on category
-  // Right now it shows all events
-  String eventFilter = "Saved Events"; // Default filter
+  String eventFilter = "Saved Events";
 
   @override
   Widget build(BuildContext context) {
     final loggedUser = ref.watch(loggedUserProvider).user;
     final events = ref.watch(eventProvider).events;
+    final eventInteractions = ref.watch(eventInteractionProvider).interactions;
 
     List<String> eventIds = [];
-    //TODO: Show only the events that have been saved/liked
     if (eventFilter == "Saved Events") {
       eventIds =
-          events.map((event) => event.id).toList(); //loggedUser.savedEvents;
+          eventInteractions
+              .where(
+                (interaction) =>
+                    interaction.saved &&
+                    interaction.username == loggedUser.username,
+              )
+              .map((interaction) => interaction.eventId)
+              .toList();
     } else if (eventFilter == "Liked Events") {
       eventIds =
-          events.map((event) => event.id).toList(); //loggedUser.likedEvents;
+          eventInteractions
+              .where(
+                (interaction) =>
+                    interaction.liked &&
+                    interaction.username == loggedUser.username,
+              )
+              .map((interaction) => interaction.eventId)
+              .toList();
     } else if (eventFilter == "Hosted Events") {
       eventIds =
           events

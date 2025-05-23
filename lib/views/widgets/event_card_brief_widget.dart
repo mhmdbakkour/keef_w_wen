@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:keef_w_wen/data/constants.dart';
-
-import '../../classes/data/event.dart';
-import '../../classes/data/user.dart';
 import '../../classes/providers.dart';
 import '../pages/event_details_page.dart';
 
@@ -18,18 +15,48 @@ class EventCardBriefWidget extends ConsumerStatefulWidget {
 }
 
 class _EventCardBriefWidgetState extends ConsumerState<EventCardBriefWidget> {
+  bool hasLiked = false;
+  bool hasSaved = false;
+  int likes = 0;
+  int saves = 0;
+
+  @override
+  void initState() {
+    super.initState();
+
+    final interaction = ref.read(
+      singleEventInteractionProvider(widget.eventId),
+    );
+    if (interaction != null) {
+      hasLiked = interaction.liked;
+      hasSaved = interaction.saved;
+      likes = interaction.likesCount;
+      saves = interaction.savesCount;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    Event event = ref
-        .watch(eventProvider)
-        .events
-        .firstWhere((event) => event.id == widget.eventId);
-    User loggedUser = ref.watch(loggedUserProvider).user;
-    final Color primaryColor = Theme.of(context).colorScheme.primary;
+    final event = ref.watch(singleEventProvider(widget.eventId));
+    final interaction = ref.watch(
+      singleEventInteractionProvider(widget.eventId),
+    );
+    final eventInteractionNotifier = ref.read(
+      eventInteractionProvider.notifier,
+    );
+    final primaryColor = Theme.of(context).colorScheme.primary;
 
-    //Event Data
-    final String title = event.title;
-    final String thumbnail = event.thumbnail;
+    if (event == null) {
+      return const SizedBox.shrink();
+    }
+
+    if (interaction != null) {
+      hasLiked = interaction.liked;
+      hasSaved = interaction.saved;
+      likes = interaction.likesCount;
+      saves = interaction.savesCount;
+    }
+
     return Card(
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
@@ -40,8 +67,8 @@ class _EventCardBriefWidgetState extends ConsumerState<EventCardBriefWidget> {
             children: [
               Expanded(
                 child:
-                    thumbnail.isNotEmpty
-                        ? Image.network(thumbnail, fit: BoxFit.cover)
+                    event.thumbnail.isNotEmpty
+                        ? Image.network(event.thumbnail, fit: BoxFit.cover)
                         : Container(
                           width: 255,
                           color:
@@ -55,11 +82,11 @@ class _EventCardBriefWidgetState extends ConsumerState<EventCardBriefWidget> {
                           ),
                         ),
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 6),
                 child: Text(
-                  title,
+                  event.title,
                   style: AppTextStyle(context: context).eventCardTitleText,
                   softWrap: false,
                   overflow: TextOverflow.ellipsis,
@@ -74,69 +101,46 @@ class _EventCardBriefWidgetState extends ConsumerState<EventCardBriefWidget> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) {
-                            return EventDetailsPage(eventId: event.id);
-                          },
+                          builder: (_) => EventDetailsPage(eventId: event.id),
                         ),
                       );
                     },
                     icon: Icon(Icons.info, color: primaryColor),
                   ),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       IconButton(
                         padding: EdgeInsets.zero,
                         visualDensity: VisualDensity.compact,
                         onPressed: () {
-                          //TODO: Implement the like button
-                          // ref
-                          //     .read(eventProvider.notifier)
-                          //     .toggleLike(event.id, loggedUser.username);
-                          // if (hasLiked) {
-                          //   loggedUser.likedEvents.remove(event.id);
-                          // } else {
-                          //   loggedUser.likedEvents.add(event.id);
-                          // }
+                          eventInteractionNotifier.likeEvent(event.id);
                         },
                         icon: Icon(
-                          // hasLiked ? Icons.favorite : Icons.favorite_outline,
-                          Icons.favorite_outline,
+                          hasLiked ? Icons.favorite : Icons.favorite_outline,
                           color: primaryColor,
                         ),
                       ),
                       Text(
-                        //event.likedUsers.length.toString(),
-                        4.toString(),
+                        likes.toString(),
                         style: TextStyle(color: primaryColor),
                       ),
                     ],
                   ),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       IconButton(
                         padding: EdgeInsets.zero,
                         visualDensity: VisualDensity.compact,
                         onPressed: () {
-                          //TODO: Implement the save button
-                          // ref
-                          //     .read(eventProvider.notifier)
-                          //     .toggleSave(event.id, loggedUser.username);
-                          // if (hasSaved) {
-                          //   loggedUser.savedEvents.remove(event.id);
-                          // } else {
-                          //   loggedUser.savedEvents.add(event.id);
-                          // }
+                          eventInteractionNotifier.saveEvent(event.id);
                         },
                         icon: Icon(
-                          // hasSaved ? Icons.bookmark : Icons.bookmark_outline,
-                          Icons.bookmark_outline,
+                          hasSaved ? Icons.bookmark : Icons.bookmark_outline,
                           color: primaryColor,
                         ),
                       ),
                       Text(
-                        4.toString(), //event.savedUsers.length.toString(),
+                        saves.toString(),
                         style: TextStyle(color: primaryColor),
                       ),
                     ],

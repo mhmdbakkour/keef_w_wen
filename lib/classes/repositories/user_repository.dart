@@ -3,22 +3,25 @@ import 'dart:io';
 import 'dart:math';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../services/api_service.dart';
-import '../../services/storage_service.dart';
 import '../data/user.dart';
 
 class UserRepository {
-  final StorageService storageService;
   final ApiService apiService;
   final storage = FlutterSecureStorage();
 
-  UserRepository({required this.storageService, required this.apiService});
+  UserRepository({required this.apiService});
 
-  Future<List<User>> fetchLocalUsers() async {
-    return storageService.fetchUsersFromFile();
+  Future<List<User>> fetchAllUsers() async {
+    final response = await apiService.get('users/');
+    final List decoded = jsonDecode(response.body);
+    return decoded.map((e) => User.fromJson(e)).toList();
   }
 
-  Future<List<User>> fetchRemoteUsers() async {
-    final response = await apiService.get('users/');
+  //TODO: This runs twice and way too many times, but it works :)
+  Future<List<User>> fetchUsers(List<String> usernames) async {
+    final response = await apiService.post('users/bulk-fetch/', {
+      'usernames': usernames,
+    });
     final List decoded = jsonDecode(response.body);
     return decoded.map((e) => User.fromJson(e)).toList();
   }
@@ -62,20 +65,37 @@ class UserRepository {
     await storage.delete(key: 'refresh_token');
   }
 
-  Future<void> updateUser(
+  Future<User> updateUser(
     String username,
     Map<String, dynamic> userData,
+    File? file,
   ) async {
-    final response = await apiService.put(
-      'users/$username/',
-      userData,
-      requiresAuth: false,
-    );
+    try {
+      final response = await apiService.patch('users/$username/', userData);
+      final json = jsonDecode(response.body);
+
+      if (file != null) {
+        final pictureUrl = await updateProfilePicture(file, username);
+        json['profile_picture'] = pictureUrl;
+      }
+
+      return User.fromJson(json);
+    } catch (e) {
+      throw Exception('Failed to update user: $e');
+    }
   }
 
-  Future<void> updateProfilePicture(File file, String username) async {
+  Future<void> deleteUser(String username) async {
+    final response = await apiService.delete('users/$username/');
+
+    if (response.statusCode != 204) {
+      throw Exception('Failed to delete user: ${response.body}');
+    }
+  }
+
+  Future<String> updateProfilePicture(File file, String username) async {
     final response = await apiService.patchMultipart(
-      endpoint: '/users/$username/',
+      endpoint: 'users/$username/',
       rawFields: {},
       files: [file],
       fileField: 'profile_picture',
@@ -85,6 +105,10 @@ class UserRepository {
       final responseBody = await response.stream.bytesToString();
       throw Exception('Failed to upload: $responseBody');
     }
+
+    final pictureUrl =
+        jsonDecode(await response.stream.bytesToString())['profile_picture'];
+    return pictureUrl;
   }
 
   Future<void> followUser(String follower, String following) async {
@@ -137,7 +161,10 @@ class UserRepository {
   Future<void> refreshAccessToken() async {
     try {
       final tokenData = await apiService.refreshToken();
-      await saveTokens(tokenData['access'], tokenData['refresh']);
+      await saveTokens(
+        tokenData['access'],
+        tokenData['refresh'] ?? await storage.read(key: 'refresh_token'),
+      );
     } catch (e) {
       throw Exception('Token refresh failed: $e');
     }

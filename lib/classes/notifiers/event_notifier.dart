@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:keef_w_wen/classes/notifiers/location_notifier.dart';
 import 'package:keef_w_wen/classes/repositories/event_repository.dart';
 import '../data/event.dart';
 import '../states/event_state.dart';
@@ -10,14 +12,26 @@ class EventNotifier extends StateNotifier<EventState> {
   EventNotifier(this.repository)
     : super(EventState(events: [], isLoading: false));
 
-  // Future<void> createEvent(Event event) async {
-  //   try {
-  //     await repository.createEvent(event);
-  //     state = state.copyWith(events: [...state.events, event]);
-  //   } catch (e) {
-  //     print("Could not create event. Error: $e");
-  //   }
-  // }
+  Future<void> createEvent(
+    Map<String, dynamic> locationData,
+    Map<String, dynamic> eventData,
+    File? eventThumbnail,
+    List<File>? eventImages,
+    LocationNotifier locationNotifier,
+  ) async {
+    try {
+      final Event event = await repository.createEvent(
+        locationData,
+        eventData,
+        eventThumbnail,
+        eventImages,
+        locationNotifier,
+      );
+      state = state.copyWith(events: [...state.events, event]);
+    } catch (e) {
+      print("Could not create event (notifier): $e");
+    }
+  }
 
   Future<void> deleteEvent(String eventId) async {
     try {
@@ -30,17 +44,50 @@ class EventNotifier extends StateNotifier<EventState> {
     }
   }
 
-  Future<void> updateEvent(Event updatedEvent) async {
+  Future<void> updateEvent(
+    String eventId,
+    Map<String, dynamic> locationData,
+    Map<String, dynamic> eventData,
+    File? eventThumbnail,
+    List<File>? eventImages,
+    LocationNotifier locationNotifier,
+  ) async {
     try {
-      await repository.updateEvent(updatedEvent);
+      final updatedEvent = await repository.updateEvent(
+        eventId,
+        locationData,
+        eventData,
+        eventThumbnail,
+        eventImages,
+        locationNotifier,
+      );
+
       state = state.copyWith(
         events: [
           for (final event in state.events)
-            if (event.id == updatedEvent.id) updatedEvent else event,
+            if (event.id == eventId) updatedEvent else event,
         ],
       );
     } catch (e) {
-      print('Could not update event. Error: $e');
+      print("Could not update event (notifier): $e");
+    }
+  }
+
+  Future<void> toggleStatus(String eventId) async {
+    try {
+      final updatedOpenStatus = await repository.toggleStatus(eventId);
+
+      final updatedEvents =
+          state.events.map((event) {
+            if (event.id == eventId) {
+              return event.copyWith(openStatus: updatedOpenStatus);
+            }
+            return event;
+          }).toList();
+
+      state = state.copyWith(events: updatedEvents);
+    } catch (e) {
+      throw Exception("Failed to toggle status: $e");
     }
   }
 
@@ -138,48 +185,12 @@ class EventNotifier extends StateNotifier<EventState> {
       throw Exception('Failed to create participant (frontend): $e');
     }
   }
-  //
-  // Future<void> toggleLike(String eventId, String username) async {
-  //   final index = state.events.indexWhere((e) => e.id == eventId);
-  //   if (index == -1) return;
-  //
-  //   final event = state.events[index];
-  //   final hasLiked = event.likedUsers.contains(username);
-  //
-  //   final updatedEvent = event.copyWith(
-  //     likedUsers:
-  //         hasLiked
-  //             ? event.likedUsers.where((u) => u != username).toList()
-  //             : [...event.likedUsers, username],
-  //   );
-  //
-  //   state.events[index] = updatedEvent;
-  //   state = state.copyWith(events: state.events);
-  // }
-  //
-  // Future<void> toggleSave(String eventId, String username) async {
-  //   final index = state.events.indexWhere((e) => e.id == eventId);
-  //   if (index == -1) return;
-  //
-  //   final event = state.events[index];
-  //   final hasLiked = event.savedUsers.contains(username);
-  //
-  //   final updatedEvent = event.copyWith(
-  //     savedUsers:
-  //         hasLiked
-  //             ? event.savedUsers.where((u) => u != username).toList()
-  //             : [...event.savedUsers, username],
-  //   );
-  //
-  //   state.events[index] = updatedEvent;
-  //   state = state.copyWith(events: state.events);
-  // }
 
   Future<void> fetchEvents() async {
     state = state.copyWith(isLoading: true);
 
     try {
-      List<Event> events = await repository.fetchRemoteEvents();
+      List<Event> events = await repository.fetchEvents();
       state = state.copyWith(events: events, isLoading: false);
     } catch (e, stack) {
       state = state.copyWith(isLoading: false, error: e.toString());

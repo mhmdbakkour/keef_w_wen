@@ -20,4 +20,23 @@ class LocationNotifier extends StateNotifier<LocationState> {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
+
+  Future<void> addLocation(Location location) async {
+    state = state.copyWith(locations: [...state.locations, location]);
+  }
+
+  void updateLocation(Location location) {
+    final updatedIndex = state.locations.indexWhere(
+      (loc) => loc.id == location.id,
+    );
+    if (updatedIndex != -1) {
+      state = state.copyWith(
+        locations: [
+          ...state.locations.sublist(0, updatedIndex),
+          location,
+          ...state.locations.sublist(updatedIndex + 1),
+        ],
+      );
+    }
+  }
 }

@@ -1,13 +1,42 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:keef_w_wen/data/notifiers.dart';
+import 'package:keef_w_wen/views/pages/about_page.dart';
+import 'package:keef_w_wen/views/pages/edit_user_page.dart';
+import 'package:keef_w_wen/views/pages/login_page.dart';
+import 'package:keef_w_wen/views/pages/privacy_policy_page.dart';
+import 'package:keef_w_wen/views/pages/terms_of_service_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class SettingsPage extends ConsumerWidget {
+import '../../classes/providers.dart';
+import '../../data/constants.dart';
+
+class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends ConsumerState<SettingsPage> {
+  bool isSharingLocation = false;
+  bool showsName = true;
+  bool isProfilePrivate = false;
+  bool autoJoins = false;
+  bool canNotify = true;
+
+  @override
+  void initState() {
+    super.initState();
+    final loggedUser = ref.read(loggedUserProvider).user;
+    isSharingLocation = loggedUser.sharingLocation;
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final primaryColor = theme.colorScheme.primary;
+    final loggedUser = ref.watch(loggedUserProvider).user;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
@@ -22,7 +51,12 @@ class SettingsPage extends ConsumerWidget {
                 icon: Icons.person,
                 iconColor: primaryColor,
                 title: 'Edit Profile',
-                onTap: () {},
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => EditUserPage()),
+                  );
+                },
               ),
               _roundedTile(
                 icon: Icons.lock,
@@ -34,30 +68,117 @@ class SettingsPage extends ConsumerWidget {
                 icon: Icons.delete,
                 iconColor: primaryColor,
                 title: 'Delete Account',
-                onTap: () {},
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder:
+                        (context) => AlertDialog(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          title: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.warning_amber_rounded,
+                                color: Theme.of(context).colorScheme.error,
+                                size: 28,
+                              ),
+                              SizedBox(width: 8),
+                              Text(
+                                "Delete Account?",
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.error,
+                                ),
+                              ),
+                            ],
+                          ),
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                "This action is permanent and irreversible.",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).colorScheme.error,
+                                ),
+                              ),
+                              SizedBox(height: 12),
+                              Text(
+                                "All your events, followers, and data will be erased from our servers. "
+                                "You will not be able to recover your account or any of its contents.\n\n"
+                                "This cannot be undone.",
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                          actionsAlignment: MainAxisAlignment.center,
+                          actions: [
+                            FilledButton.icon(
+                              style: FilledButton.styleFrom(
+                                backgroundColor:
+                                    Theme.of(context).colorScheme.error,
+                              ),
+                              onPressed: () {
+                                ref
+                                    .read(loggedUserProvider.notifier)
+                                    .deleteUser(loggedUser.username);
+                                showModalBottomSheet(
+                                  context: context,
+                                  builder:
+                                      (context) =>
+                                          Text("Account successfully removed"),
+                                );
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => LoginPage(),
+                                  ),
+                                );
+                              },
+                              icon: Icon(Icons.delete_forever),
+                              label: Text("Yes, delete it"),
+                            ),
+                          ],
+                        ),
+                  );
+                },
               ),
 
               _sectionHeader('Privacy'),
               _toggleTile(
                 'Location Sharing',
-                true,
+                isSharingLocation,
                 Icons.share_location,
                 primaryColor,
-                (val) {},
+                (val) {
+                  setState(() {
+                    isSharingLocation = !isSharingLocation;
+                    loggedUser.sharingLocation = val;
+                  });
+                },
               ),
               _toggleTile(
                 'Show My Name in Events',
-                true,
+                showsName,
                 Icons.visibility,
                 primaryColor,
-                (val) {},
+                (val) {
+                  setState(() {
+                    showsName = !showsName;
+                  });
+                },
               ),
               _toggleTile(
                 'Make Profile Private',
-                false,
+                isProfilePrivate,
                 Icons.privacy_tip,
                 primaryColor,
-                (val) {},
+                (val) {
+                  setState(() {
+                    isProfilePrivate = !isProfilePrivate;
+                  });
+                },
               ),
               _roundedTile(
                 icon: Icons.block,
@@ -69,17 +190,25 @@ class SettingsPage extends ConsumerWidget {
               _sectionHeader('Event Preferences'),
               _toggleTile(
                 'Auto-Join Nearby Public Events',
-                false,
+                autoJoins,
                 Icons.join_full,
                 primaryColor,
-                (val) {},
+                (val) {
+                  setState(() {
+                    autoJoins = !autoJoins;
+                  });
+                },
               ),
               _toggleTile(
                 'Notify When Friends Create Events',
-                true,
+                canNotify,
                 Icons.notification_important,
                 primaryColor,
-                (val) {},
+                (val) {
+                  setState(() {
+                    canNotify = !canNotify;
+                  });
+                },
               ),
               _roundedTile(
                 icon: Icons.event_available,
@@ -89,13 +218,27 @@ class SettingsPage extends ConsumerWidget {
               ),
 
               _sectionHeader('App Customization'),
-              _toggleTile(
-                'Dark Mode',
-                false,
-                Icons.dark_mode,
-                primaryColor,
-                (val) {},
+              ValueListenableBuilder(
+                valueListenable: isDarkModeNotifier,
+                builder: (context, isDarkMode, child) {
+                  return _toggleTile(
+                    'Dark Mode',
+                    isDarkModeNotifier.value,
+                    Icons.dark_mode,
+                    primaryColor,
+                    (val) async {
+                      isDarkModeNotifier.value = !isDarkMode;
+                      final SharedPreferences prefs =
+                          await SharedPreferences.getInstance();
+                      await prefs.setBool(
+                        AppConstants.themeModeKey,
+                        !isDarkMode,
+                      );
+                    },
+                  );
+                },
               ),
+
               _roundedTile(
                 icon: Icons.translate,
                 iconColor: primaryColor,
@@ -109,39 +252,38 @@ class SettingsPage extends ConsumerWidget {
                 icon: Icons.info_outline,
                 iconColor: primaryColor,
                 title: 'About Keef w Wen',
-                onTap: () {},
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => AboutPage()),
+                  );
+                },
               ),
               _roundedTile(
                 icon: Icons.security,
                 iconColor: primaryColor,
                 title: 'Privacy Policy',
-                onTap: () {},
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PrivacyPolicyPage(),
+                    ),
+                  );
+                },
               ),
               _roundedTile(
-                icon: Icons.help_outline,
+                icon: Icons.home_repair_service,
                 iconColor: primaryColor,
-                title: 'Contact Support',
-                onTap: () {},
-              ),
-
-              const SizedBox(height: 20),
-              Center(
-                child: FilledButton.icon(
-                  onPressed: () {
-                    // Handle logout
-                  },
-                  style: ElevatedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                title: 'Terms of Service',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => TermsOfServicePage(),
                     ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 12,
-                    ),
-                  ),
-                  icon: const Icon(Icons.logout),
-                  label: const Text('Logout'),
-                ),
+                  );
+                },
               ),
             ],
           ),

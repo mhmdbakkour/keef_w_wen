@@ -12,20 +12,22 @@ import 'package:keef_w_wen/views/widgets/form_text_widget.dart';
 import 'package:keef_w_wen/views/widgets/tag_selector_widget.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../../classes/data/event.dart';
 import '../../classes/data/location.dart';
 import '../../classes/data/user.dart';
 import '../../classes/notifiers/event_notifier.dart';
 import '../../classes/notifiers/location_notifier.dart';
 import '../widgets/event_location_picker_widget.dart';
 
-class CreateEventPage extends ConsumerStatefulWidget {
-  const CreateEventPage({super.key});
+class EditEventPage extends ConsumerStatefulWidget {
+  final Event event;
+  const EditEventPage({super.key, required this.event});
 
   @override
-  ConsumerState<CreateEventPage> createState() => _CreateEventPageState();
+  ConsumerState<EditEventPage> createState() => _CreateEventPageState();
 }
 
-class _CreateEventPageState extends ConsumerState<CreateEventPage> {
+class _CreateEventPageState extends ConsumerState<EditEventPage> {
   final _formKey = GlobalKey<FormState>();
 
   final TextEditingController eventTitleController = TextEditingController();
@@ -34,6 +36,8 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
   final TextEditingController eventPriceController = TextEditingController();
   final TextEditingController eventSeatsController = TextEditingController();
 
+  DateTime? initialDateStart;
+  TimeOfDay? initialTimeStart;
   DateTime? selectedDateStart;
   DateTime? selectedDateClosed;
   DateTime? selectedDateEnded;
@@ -43,6 +47,7 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
   File? selectedThumbnail;
   Location selectedLocation = Location.empty();
   List<File> selectedImages = [];
+  List<dynamic> combinedImages = [];
   List<String> selectedTags = [];
   bool isPrivateEvent = false;
   bool isPaidEvent = false;
@@ -66,7 +71,7 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
     }
   }
 
-  Future<void> createEvent(
+  Future<void> updateEvent(
     EventNotifier notifier,
     User loggedUser,
     LocationNotifier locationNotifier,
@@ -83,6 +88,7 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
         'is_private': isPrivateEvent,
         'needs_id': needsIdentification,
         'host_owner': loggedUser.username,
+        'location': widget.event.location,
         'date_start':
             DateTime(
               selectedDateStart!.year,
@@ -119,7 +125,8 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
         'tags': jsonEncode(selectedTags),
       };
       try {
-        await notifier.createEvent(
+        await notifier.updateEvent(
+          widget.event.id,
           locationData,
           eventData,
           selectedThumbnail,
@@ -127,7 +134,7 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
           locationNotifier,
         );
       } catch (e) {
-        throw Exception("Could not create event (create): $e");
+        throw Exception("Could not update event (edit): $e");
       }
     } else {
       throw Exception();
@@ -143,6 +150,14 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
         selectedTimeEnded == null) {
       return "Please select all dates and times.";
     }
+
+    final initialStart = DateTime(
+      initialDateStart!.year,
+      initialDateStart!.month,
+      initialDateStart!.day,
+      initialTimeStart!.hour,
+      selectedTimeStart!.minute,
+    );
 
     final start = DateTime(
       selectedDateStart!.year,
@@ -168,8 +183,8 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
       selectedTimeEnded!.minute,
     );
 
-    if (start.isBefore(DateTime.now())) {
-      return "Start time cannot be in the past.";
+    if (start.isBefore(initialStart)) {
+      return "Start time can only changed forwards.";
     }
 
     if (close.isBefore(start)) {
@@ -271,7 +286,39 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
         ...selectedImages,
         ...pickedFiles.map((e) => File(e.path)),
       ];
+      combinedImages = [...combinedImages, ...selectedImages];
     });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    final event = widget.event;
+
+    eventTitleController.text = event.title;
+    eventDescriptionController.text = event.description;
+    eventPriceController.text = event.price <= 0 ? "" : event.price.toString();
+    eventSeatsController.text = event.seats == -1 ? "" : event.seats.toString();
+
+    selectedDateStart = event.dateStart;
+    initialDateStart = event.dateStart;
+    selectedDateClosed = event.dateClosed;
+    selectedDateEnded = event.dateEnded;
+
+    selectedTimeStart = TimeOfDay.fromDateTime(event.dateStart);
+    initialTimeStart = selectedTimeStart;
+    selectedTimeClosed = TimeOfDay.fromDateTime(event.dateClosed);
+    selectedTimeEnded = TimeOfDay.fromDateTime(event.dateEnded);
+
+    selectedLocation = ref
+        .read(locationProvider)
+        .locations
+        .firstWhere((l) => l.id == event.location);
+    isPrivateEvent = event.isPrivate;
+    isPaidEvent = event.price > 0;
+    needsIdentification = event.needsId;
+
+    combinedImages = [...widget.event.images, ...selectedImages];
   }
 
   @override
@@ -290,7 +337,7 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
     final locationNotifier = ref.watch(locationProvider.notifier);
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Create Event")),
+      appBar: AppBar(title: const Text("Edit Event")),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -322,6 +369,21 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
                                     ),
                                   ),
                                 )
+                                : widget.event.thumbnail.isNotEmpty
+                                ? Container(
+                                  width: double.infinity,
+                                  height: 300,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(25),
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(25),
+                                    child: Image.network(
+                                      widget.event.thumbnail,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                )
                                 : Container(
                                   padding: EdgeInsets.all(16),
                                   width: double.infinity,
@@ -345,37 +407,44 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
                       ),
                     ),
                     SizedBox(width: 10),
-                    selectedImages.isNotEmpty
-                        ? SizedBox(
-                          height: 300,
-                          child: ListView(
-                            shrinkWrap: true,
-                            physics: NeverScrollableScrollPhysics(),
-                            scrollDirection: Axis.horizontal,
-                            children:
-                                selectedImages.map((file) {
+                    SizedBox(
+                      height: 300,
+                      child:
+                          combinedImages.isEmpty
+                              ? SizedBox.shrink()
+                              : ListView.builder(
+                                shrinkWrap: true,
+                                physics: NeverScrollableScrollPhysics(),
+                                scrollDirection: Axis.horizontal,
+                                itemCount: combinedImages.length,
+                                itemBuilder: (context, index) {
+                                  final image = combinedImages[index];
+                                  final imageProvider =
+                                      image is File
+                                          ? FileImage(image)
+                                          : NetworkImage(image.url)
+                                              as ImageProvider;
+
                                   return Padding(
                                     padding: const EdgeInsets.only(right: 12),
                                     child: Container(
                                       width:
                                           MediaQuery.of(context).size.width *
                                           0.9,
-                                      height: 300,
                                       decoration: BoxDecoration(
                                         borderRadius: BorderRadius.circular(25),
                                         image: DecorationImage(
-                                          image: FileImage(file),
+                                          image: imageProvider,
                                           fit: BoxFit.cover,
                                         ),
                                       ),
                                     ),
                                   );
-                                }).toList(),
-                          ),
-                        )
-                        : SizedBox.shrink(),
+                                },
+                              ),
+                    ),
                     SizedBox(
-                      width: MediaQuery.of(context).size.width * 0.9,
+                      width: MediaQuery.of(context).size.width * 0.925,
                       child: GestureDetector(
                         onTap: pickImages,
                         child: Container(
@@ -441,6 +510,7 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
               const SizedBox(height: 10),
               TagSelector(
                 tags: eventTags,
+                currentTags: widget.event.tags,
                 onSelectionChanged: (tags) {
                   setState(() {
                     selectedTags = tags;
@@ -638,10 +708,10 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
               ElevatedButton(
                 onPressed: () async {
                   try {
-                    await createEvent(notifier, loggedUser, locationNotifier);
+                    await updateEvent(notifier, loggedUser, locationNotifier);
                     ScaffoldMessenger.of(
                       context,
-                    ).showSnackBar(SnackBar(content: Text("Event created")));
+                    ).showSnackBar(SnackBar(content: Text("Event updated")));
                     if (ModalRoute.of(context)?.settings.name != '/main') {
                       Navigator.popUntil(context, ModalRoute.withName('/main'));
                     }
@@ -651,10 +721,7 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
                   minimumSize: const Size.fromHeight(50),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
-                child: const Text(
-                  "Create Event",
-                  style: TextStyle(fontSize: 16),
-                ),
+                child: const Text("Edit Event", style: TextStyle(fontSize: 16)),
               ),
             ],
           ),

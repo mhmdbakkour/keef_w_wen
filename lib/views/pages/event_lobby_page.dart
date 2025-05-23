@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:keef_w_wen/data/constants.dart';
 import 'package:keef_w_wen/views/widgets/event_map_view_widget.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../classes/data/event.dart';
@@ -63,7 +64,7 @@ class _EventLobbyPageState extends ConsumerState<EventLobbyPage> {
     final locations = ref.watch(locationProvider).locations;
 
     eventLocation = locations.firstWhere(
-      (location) => event!.location == location.id,
+      (location) => location.id == event!.location,
     );
 
     if (event == null) {
@@ -79,6 +80,20 @@ class _EventLobbyPageState extends ConsumerState<EventLobbyPage> {
       appBar: AppBar(
         title: const Text('Event Lobby'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.qr_code),
+            onPressed:
+                () => _showEventTicket(
+                  context,
+                  event.participants
+                      .firstWhere(
+                        (participant) =>
+                            participant.username == loggedUser?.username,
+                      )
+                      .id,
+                  event.title,
+                ),
+          ),
           IconButton(
             icon: const Icon(Icons.map),
             onPressed: () => _showEventMap(context, event),
@@ -119,7 +134,10 @@ class _EventLobbyPageState extends ConsumerState<EventLobbyPage> {
               style: AppTextStyle(context: context).eventLobbyCardTitle,
             ),
             SizedBox(height: 8),
-            Text(event.location, style: AppTextStyle.eventLobbyCardLocation),
+            Text(
+              eventLocation.name,
+              style: AppTextStyle.eventLobbyCardLocation,
+            ),
             SizedBox(height: 8),
             Text(
               "Organized by ${users.firstWhere((user) => user.username == event.hostOwner).fullname}",
@@ -221,7 +239,7 @@ class _EventLobbyPageState extends ConsumerState<EventLobbyPage> {
           eventOpen
               ? eventPending
                   ? Theme.of(context).colorScheme.primary
-                  : Theme.of(context).colorScheme.tertiaryContainer
+                  : Colors.green.shade700
               : Theme.of(context).colorScheme.primary,
       child: Container(
         decoration: BoxDecoration(borderRadius: BorderRadius.circular(16)),
@@ -395,6 +413,7 @@ class _EventLobbyPageState extends ConsumerState<EventLobbyPage> {
     );
   }
 
+  //TODO: Implement event announcements
   Widget _buildAnnouncements() {
     return Container(
       padding: EdgeInsets.all(16),
@@ -424,6 +443,7 @@ class _EventLobbyPageState extends ConsumerState<EventLobbyPage> {
     );
   }
 
+  //TODO: Implement the event feed
   Widget _buildEventFeed(Event event, List<User> users) {
     return Container(
       padding: EdgeInsets.all(16),
@@ -448,9 +468,14 @@ class _EventLobbyPageState extends ConsumerState<EventLobbyPage> {
                     hostUser.profilePicture != null &&
                             hostUser.profilePicture!.isNotEmpty
                         ? CircleAvatar(
-                          backgroundImage: AssetImage(hostUser.profilePicture!),
+                          backgroundImage: NetworkImage(
+                            hostUser.profilePicture!,
+                          ),
                         )
-                        : CircleAvatar(child: Text(hostUser.fullname[0])),
+                        : CircleAvatar(
+                          backgroundColor: hostUser.associatedColor,
+                          child: Text(hostUser.fullname[0]),
+                        ),
                 title: Text(
                   users
                       .firstWhere((user) => user.username == event.hostOwner)
@@ -528,6 +553,74 @@ class _EventLobbyPageState extends ConsumerState<EventLobbyPage> {
                 ),
               ),
             ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showEventTicket(
+    BuildContext context,
+    String participantId,
+    String eventTitle,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+      ),
+      builder: (context) {
+        return SizedBox(
+          width: double.infinity,
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    children: [
+                      Text(
+                        "Event Ticket",
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                      Text(
+                        eventTitle,
+                        style:
+                            AppTextStyle(context: context).eventCardTitleText,
+                      ),
+                      SizedBox(height: 20),
+                      Card(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: QrImageView(
+                            data: participantId,
+                            version: QrVersions.auto,
+                            size: 200.0,
+                            backgroundColor: Colors.white,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 20),
+                      Text(
+                        "Scan this QR code at the entrance.\nIt is tied to your account only.",
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 20),
+              ],
+            ),
           ),
         );
       },

@@ -39,20 +39,40 @@ class JoinEventPage extends ConsumerWidget {
         ),
       ),
       body: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: EdgeInsets.symmetric(horizontal: 16),
         child: Stack(
           children: [
             SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12.0),
-                    child: SizedBox(
-                      height: 275,
-                      child: Image.network(event.thumbnail, fit: BoxFit.cover),
-                    ),
-                  ),
+                  event.thumbnail.isNotEmpty
+                      ? Container(
+                        height: 275,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          image: DecorationImage(
+                            image: NetworkImage(event.thumbnail),
+                          ),
+                        ),
+                      )
+                      : Container(
+                        height: 275,
+                        decoration: BoxDecoration(
+                          color:
+                              Theme.of(
+                                context,
+                              ).colorScheme.surfaceContainerHigh,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Center(
+                          child: Icon(
+                            Icons.broken_image,
+                            color: Theme.of(context).colorScheme.error,
+                            size: 50,
+                          ),
+                        ),
+                      ),
                   SizedBox(height: 16),
                   // Event Details Section
                   Text(event.title, style: AppTextStyle.joinEventTitle),
@@ -119,7 +139,9 @@ class JoinEventPage extends ConsumerWidget {
                     children: [
                       Flexible(
                         child: ListTile(
-                          title: Text("${event.seats} seats"),
+                          title: Text(
+                            event.seats != -1 ? "${event.seats}" : "∞",
+                          ),
                           leading: Icon(
                             event.seats > 0
                                 ? Icons.event_seat
@@ -129,7 +151,11 @@ class JoinEventPage extends ConsumerWidget {
                       ),
                       Flexible(
                         child: ListTile(
-                          title: Text("${event.price.floor().toString()}\$"),
+                          title: Text(
+                            event.price > 0
+                                ? "${event.price.floor().toString()}\$"
+                                : "Free",
+                          ),
                           leading: Icon(Icons.attach_money),
                         ),
                       ),

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:keef_w_wen/classes/providers.dart';
+import 'package:keef_w_wen/data/notifiers.dart';
+import 'package:keef_w_wen/views/pages/view_profile_page.dart';
 import 'package:keef_w_wen/views/widgets/search_bar_widget.dart';
+import 'package:keef_w_wen/views/widgets/user_profile_card_widget.dart';
 import '../../classes/data/user.dart';
-import '../widgets/user_brief_widget.dart';
 
 class PeoplePage extends ConsumerStatefulWidget {
   const PeoplePage({super.key});
@@ -13,56 +15,76 @@ class PeoplePage extends ConsumerStatefulWidget {
 }
 
 class _PeoplePageState extends ConsumerState<PeoplePage> {
-  @override
-  Widget build(BuildContext context) {
-    return Consumer(
-      builder: (context, ref, child) {
-        List<User> users = ref.watch(userProvider).users;
+  late List<User> filteredUsers;
 
-        return Stack(
-          children: [
-            SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  SizedBox(height: 60),
-                  _friendSection("From last event...", users),
-                  _friendSection("Based on your interests", users),
-                  _friendSection("Friends of friends", users),
-                ],
-              ),
-            ),
-            SearchBarWidget(hintText: "I wonder who that was..."),
-          ],
-        );
-      },
-    );
+  @override
+  void initState() {
+    super.initState();
+    filteredUsers = ref.read(userProvider).users;
   }
 
-  Widget _friendSection(String title, List<User> users) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  @override
+  Widget build(BuildContext context) {
+    List<User> users = ref.watch(userProvider).users;
+    User loggedUser = ref.watch(loggedUserProvider).user;
+
+    return Stack(
       children: [
-        SizedBox(height: 10),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Text(
-            title,
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              SizedBox(height: 60),
+              ListView.builder(
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                itemCount: filteredUsers.length,
+                itemBuilder: (context, index) {
+                  User user = filteredUsers[index];
+                  return UserProfileCard(
+                    user: user,
+                    onVisited: () {
+                      if (user.username == loggedUser.username) {
+                        Navigator.popUntil(
+                          context,
+                          (route) => route.settings.name == '/main',
+                        );
+                        selectedPageNotifier.value = 4;
+                      } else {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ViewProfilePage(user: user),
+                          ),
+                        );
+                      }
+                    },
+                  );
+                },
+              ),
+            ],
           ),
         ),
-        SizedBox(height: 10),
-        ListView.builder(
-          shrinkWrap: true,
-          physics: NeverScrollableScrollPhysics(),
-          itemCount: users.length,
-          itemBuilder: (context, index) {
-            User user = users[index];
-            return UserBriefWidget(user: user);
+        SearchBarWidget(
+          hintText: "Search people",
+          items: users,
+          searchFilter: (items, query, filters) {
+            return items.where((user) {
+              final matchQuery =
+                  user.fullname.toLowerCase().contains(query.toLowerCase()) ||
+                  user.username.toLowerCase().contains(query.toLowerCase()) ||
+                  user.email.contains(query.toLowerCase()) ||
+                  user.mobileNumber.toString().contains(query);
+              return matchQuery;
+            }).toList();
+          },
+          onSearch: (results) {
+            setState(() {
+              filteredUsers = results;
+            });
           },
         ),
-        SizedBox(height: 20),
       ],
     );
   }

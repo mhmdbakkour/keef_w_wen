@@ -35,7 +35,7 @@ class UserNotifier extends StateNotifier<UserState> {
     state = state.copyWith(isLoading: true);
 
     try {
-      List<User> users = await repository.fetchRemoteUsers();
+      List<User> users = await repository.fetchAllUsers();
       state = state.copyWith(users: users, isLoading: false);
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());

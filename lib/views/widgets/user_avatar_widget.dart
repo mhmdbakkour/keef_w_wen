@@ -37,7 +37,11 @@ class UserAvatarWidget extends ConsumerWidget {
                 radius: 25,
                 backgroundImage: NetworkImage(user.profilePicture!),
               )
-              : CircleAvatar(radius: 25, child: Text(user.fullname[0])),
+              : CircleAvatar(
+                radius: 25,
+                backgroundColor: user.associatedColor,
+                child: Text(user.fullname[0]),
+              ),
     );
   }
 }

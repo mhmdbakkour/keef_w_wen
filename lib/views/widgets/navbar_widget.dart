@@ -4,6 +4,7 @@ import '../../data/notifiers.dart';
 class NavbarWidget extends StatelessWidget {
   const NavbarWidget({super.key});
 
+  //TODO: Try to remove the propagation animation
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<int>(

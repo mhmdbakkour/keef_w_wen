@@ -30,7 +30,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() => ref.read(loggedUserProvider.notifier).clearUser());
+    Future.microtask(() {
+      ref.read(loggedUserProvider.notifier).clearUser();
+      ref.read(userRepositoryProvider).logout();
+    });
   }
 
   @override
@@ -159,6 +162,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       final currentUser = await repository.fetchCurrentUser();
       if (!mounted) return;
       loggedUserNotifier.setUser(currentUser);
+      loggedUserNotifier.setFollowers();
 
       if (mounted) {
         Navigator.of(context).pushReplacement(
@@ -177,7 +181,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       setState(() {
         submissionError = true;
       });
-      throw Exception("Could not login: $e");
     }
   }
 }

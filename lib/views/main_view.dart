@@ -28,9 +28,12 @@ class _MainViewState extends ConsumerState<MainView> {
     super.initState();
     _pageController = PageController();
     Future.microtask(() {
+      final loggedUser = ref.read(loggedUserProvider).user;
       ref.read(eventProvider.notifier).fetchEvents();
       ref.read(userProvider.notifier).fetchUsers();
       ref.read(locationProvider.notifier).fetchLocations();
+      ref.read(eventInteractionProvider.notifier).fetchInteractions();
+      ref.read(userFollowersProvider(loggedUser.username).notifier).fetchAll();
     });
   }
 
@@ -55,7 +58,7 @@ class _MainViewState extends ConsumerState<MainView> {
       EventsPage(),
       MapPage(),
       PeoplePage(),
-      ProfilePage(loggedUser: loggedUser),
+      ProfilePage(),
     ];
 
     return PopScope(

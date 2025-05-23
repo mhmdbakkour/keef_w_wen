@@ -9,8 +9,10 @@ import 'package:keef_w_wen/views/widgets/rating_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../classes/data/event.dart';
 import '../../classes/data/event_image.dart';
+import '../../classes/data/participant.dart';
 import '../../classes/data/user.dart';
 import '../../classes/providers.dart';
+import '../widgets/qr_scanner_widget.dart';
 import 'event_lobby_page.dart';
 
 class EventDetailsPage extends ConsumerWidget {
@@ -52,8 +54,6 @@ class EventDetailsPage extends ConsumerWidget {
     final bool openStatus = event.openStatus;
     final DateTime dateClosed = event.dateClosed;
     final int seats = event.seats;
-    //TODO: Remove like count and implement the likes thing
-    final int likes = 5;
     final double price = event.price;
     final double rating = event.rating;
     final List<String> tags = event.tags;
@@ -65,6 +65,161 @@ class EventDetailsPage extends ConsumerWidget {
           style: AppTextStyle(context: context).eventDetailsTitle,
         ),
         centerTitle: true,
+        actions:
+            event.participants.any(
+                  (participant) =>
+                      participant.username == loggedUser.username &&
+                      (participant.isHost ?? false),
+                )
+                ? [
+                  IconButton(
+                    icon: Icon(
+                      Icons.qr_code_scanner,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    onPressed: () {
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(25),
+                          ),
+                        ),
+                        builder: (context) {
+                          return SizedBox(
+                            width: double.infinity,
+                            child: Padding(
+                              padding: const EdgeInsets.all(20),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    "Ticket Scanner",
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleLarge
+                                        ?.copyWith(fontWeight: FontWeight.bold),
+                                  ),
+                                  const SizedBox(height: 20),
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(16),
+                                    child: Container(
+                                      color: Colors.black,
+                                      child: FittedBox(
+                                        fit: BoxFit.cover,
+                                        child: SizedBox(
+                                          width: 400,
+                                          height: 400,
+                                          child: QRScannerWidget(
+                                            onDetect: (value) {
+                                              final participant = event
+                                                  .participants
+                                                  .firstWhere(
+                                                    (p) => p.id == value,
+                                                    orElse:
+                                                        () =>
+                                                            Participant.empty(),
+                                                  );
+
+                                              Navigator.pop(context);
+
+                                              final isValid =
+                                                  participant.id == value;
+
+                                              showDialog(
+                                                context: context,
+                                                barrierDismissible: false,
+                                                builder: (context) {
+                                                  Future.delayed(
+                                                    const Duration(seconds: 3),
+                                                    () {
+                                                      if (Navigator.of(
+                                                        context,
+                                                      ).canPop())
+                                                        Navigator.of(
+                                                          context,
+                                                        ).pop();
+                                                    },
+                                                  );
+
+                                                  return Dialog(
+                                                    shape: RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            20,
+                                                          ),
+                                                    ),
+                                                    backgroundColor:
+                                                        isValid
+                                                            ? Colors
+                                                                .green
+                                                                .shade700
+                                                            : Colors
+                                                                .red
+                                                                .shade700,
+                                                    child: Padding(
+                                                      padding:
+                                                          const EdgeInsets.symmetric(
+                                                            vertical: 40,
+                                                            horizontal: 24,
+                                                          ),
+                                                      child: Column(
+                                                        mainAxisSize:
+                                                            MainAxisSize.min,
+                                                        children: [
+                                                          Icon(
+                                                            isValid
+                                                                ? Icons
+                                                                    .check_circle
+                                                                : Icons.cancel,
+                                                            size: 64,
+                                                            color: Colors.white,
+                                                          ),
+                                                          const SizedBox(
+                                                            height: 20,
+                                                          ),
+                                                          Text(
+                                                            isValid
+                                                                ? "Welcome, ${participant.username}"
+                                                                : "Access Denied",
+                                                            style:
+                                                                const TextStyle(
+                                                                  fontSize: 20,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold,
+                                                                  color:
+                                                                      Colors
+                                                                          .white,
+                                                                ),
+                                                            textAlign:
+                                                                TextAlign
+                                                                    .center,
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  );
+                                                },
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ]
+                : [],
       ),
       body: Stack(
         children: [
@@ -104,7 +259,7 @@ class EventDetailsPage extends ConsumerWidget {
                               );
                         } else {
                           return images.isNotEmpty
-                              ? _buildImage(context, images[index - 1].image)
+                              ? _buildImage(context, images[index - 1].url)
                               : Container(
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(12),
@@ -219,7 +374,7 @@ class EventDetailsPage extends ConsumerWidget {
                   ListTile(
                     title: Text(
                       seats != -1
-                          ? "$seats seats available"
+                          ? "$seats seats"
                           : "Unlimited seats available",
                       style: AppTextStyle(context: context).eventDetailsBrief,
                     ),
@@ -228,17 +383,6 @@ class EventDetailsPage extends ConsumerWidget {
                       style: AppTextStyle.eventDetailsSubTitle,
                     ),
                     leading: Icon(Icons.event_seat, color: detailColor),
-                  ),
-                  ListTile(
-                    title: Text(
-                      "$likes likes received",
-                      style: AppTextStyle(context: context).eventDetailsBrief,
-                    ),
-                    subtitle: Text(
-                      "Number of likes made by users",
-                      style: AppTextStyle.eventDetailsSubTitle,
-                    ),
-                    leading: Icon(Icons.favorite, color: detailColor),
                   ),
                   ListTile(
                     title: Text(
@@ -254,16 +398,25 @@ class EventDetailsPage extends ConsumerWidget {
                     leading: Icon(Icons.attach_money, color: detailColor),
                   ),
                   ListTile(
-                    title: Wrap(
-                      spacing: 8,
-                      children:
-                          tags.map((tag) {
-                            return ActionChip(
-                              label: Text(tag),
-                              onPressed: () {},
-                            );
-                          }).toList(),
-                    ),
+                    title:
+                        tags.isNotEmpty
+                            ? Wrap(
+                              spacing: 8,
+                              children:
+                                  tags.map((tag) {
+                                    return ActionChip(
+                                      label: Text(tag),
+                                      onPressed: () {},
+                                    );
+                                  }).toList(),
+                            )
+                            : Text(
+                              "None",
+                              style:
+                                  AppTextStyle(
+                                    context: context,
+                                  ).eventDetailsBrief,
+                            ),
                     subtitle: Text(
                       "Tags associated with event",
                       style: AppTextStyle.eventDetailsSubTitle,
@@ -348,7 +501,7 @@ class EventDetailsPage extends ConsumerWidget {
 
   Widget _buildImage(BuildContext context, String image) {
     return Padding(
-      padding: EdgeInsets.only(right: 10),
+      padding: EdgeInsets.only(right: 5),
       child: InkWell(
         child: SizedBox(
           height: 275,
@@ -398,43 +551,81 @@ class EventDetailsPage extends ConsumerWidget {
           (user) => user.username == event.hostOwner,
         );
         return Dialog(
-          child: Container(
-            padding: EdgeInsets.all(16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30), // Much rounder corners
+          ),
+          insetPadding: EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   "Contact",
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
-                Divider(thickness: 3),
-                SizedBox(height: 15),
-                ListTile(
-                  leading: Icon(Icons.person),
-                  title: Text(eventOwner.fullname),
-                  subtitle: Text(eventOwner.username),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ViewProfilePage(user: eventOwner),
+                SizedBox(height: 10),
+                Card(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ), // More rounded
+                  elevation: 1,
+                  child: ListTile(
+                    leading: Icon(
+                      Icons.person,
+                      color: Theme.of(context).primaryColor,
+                    ), // Primary color icon
+                    title: Text(eventOwner.fullname),
+                    subtitle: Text('@${eventOwner.username}'),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (context) => ViewProfilePage(user: eventOwner),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                SizedBox(height: 5),
+                Card(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ), // More rounded
+                  elevation: 1,
+                  child: ListTile(
+                    leading: Icon(
+                      Icons.email,
+                      color: Theme.of(context).primaryColor,
+                    ), // Primary color icon
+                    title: Text(eventOwner.email),
+                    onTap: () => _sendEmail(eventOwner.email),
+                  ),
+                ),
+                SizedBox(height: 5),
+                if (eventOwner.mobileNumber.isNotEmpty)
+                  Card(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ), // More rounded
+                    elevation: 1,
+                    child: ListTile(
+                      leading: Icon(
+                        Icons.phone,
+                        color: Theme.of(context).primaryColor,
+                      ), // Primary color icon
+                      title: Text(
+                        (eventOwner.mobileNumber.trim().isNotEmpty)
+                            ? "${eventOwner.mobileNumber.substring(0, 4)} "
+                                "${eventOwner.mobileNumber.substring(4, 6)} "
+                                "${eventOwner.mobileNumber.substring(6, 9)} "
+                                "${eventOwner.mobileNumber.substring(9, 12)}"
+                            : "Not available",
                       ),
-                    );
-                  },
-                ),
-                ListTile(
-                  leading: Icon(Icons.alternate_email),
-                  title: Text(eventOwner.email),
-                  onTap: () => _sendEmail(eventOwner.email),
-                ),
-                eventOwner.mobileNumber.isNotEmpty
-                    ? ListTile(
-                      leading: Icon(Icons.phone),
-                      title: Text(eventOwner.mobileNumber.toString()),
                       onTap: () => _makeCall(eventOwner.mobileNumber),
-                    )
-                    : SizedBox.shrink(),
+                    ),
+                  ),
               ],
             ),
           ),

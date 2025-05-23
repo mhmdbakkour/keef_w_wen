@@ -3,36 +3,29 @@ import 'package:keef_w_wen/classes/notifiers/user_followers_notifier.dart';
 import 'package:keef_w_wen/classes/repositories/event_repository.dart';
 import 'package:keef_w_wen/classes/repositories/location_repository.dart';
 import 'package:keef_w_wen/classes/repositories/user_repository.dart';
+import 'package:keef_w_wen/classes/states/event_interaction_state.dart';
 import 'package:keef_w_wen/classes/states/location_state.dart';
 import 'package:keef_w_wen/classes/states/user_followers_state.dart';
 import '../services/api_service.dart';
+import 'data/event_interaction.dart';
+import 'notifiers/event_interaction_notifier.dart';
 import 'notifiers/location_notifier.dart';
 import 'states/logged_user_state.dart';
 import 'states/user_state.dart';
-import '../services/storage_service.dart';
 import 'data/event.dart';
 import 'notifiers/event_notifier.dart';
 import 'notifiers/logged_user_notifier.dart';
 import 'notifiers/user_notifier.dart';
 import 'states/event_state.dart';
 
-//TODO: Remove the storage service provider and all its usages
-final storageServiceProvider = Provider<StorageService>(
-  (ref) => StorageService(),
-);
-
 final apiServiceProvider = Provider<ApiService>((ref) {
-  const baseUrl = 'http://192.168.1.103:8000/api';
+  const baseUrl = 'http://10.0.2.2:8000/api';
   return ApiService(baseUrl: baseUrl);
 });
 
 final eventRepositoryProvider = Provider<EventRepository>((ref) {
-  final storageService = ref.read(storageServiceProvider);
   final apiService = ref.read(apiServiceProvider);
-  return EventRepository(
-    storageService: storageService,
-    apiService: apiService,
-  );
+  return EventRepository(apiService: apiService);
 });
 
 final eventProvider = StateNotifierProvider<EventNotifier, EventState>((ref) {
@@ -48,9 +41,8 @@ final singleEventProvider = Provider.family<Event?, String>((ref, id) {
 });
 
 final userRepositoryProvider = Provider<UserRepository>((ref) {
-  final storageService = ref.read(storageServiceProvider);
   final apiService = ref.read(apiServiceProvider);
-  return UserRepository(storageService: storageService, apiService: apiService);
+  return UserRepository(apiService: apiService);
 });
 
 final userProvider = StateNotifierProvider<UserNotifier, UserState>((ref) {
@@ -60,7 +52,7 @@ final userProvider = StateNotifierProvider<UserNotifier, UserState>((ref) {
 
 final loggedUserProvider =
     StateNotifierProvider<LoggedUserNotifier, LoggedUserState>(
-      (ref) => LoggedUserNotifier(),
+      (ref) => LoggedUserNotifier(ref.read(userRepositoryProvider)),
     );
 
 final locationRepositoryProvider = Provider<LocationRepository>((ref) {
@@ -83,3 +75,23 @@ final userFollowersProvider = StateNotifierProvider.family<
   final repository = ref.read(userRepositoryProvider);
   return UserFollowersNotifier(repository, username);
 });
+
+final eventInteractionProvider =
+    StateNotifierProvider<EventInteractionNotifier, EventInteractionState>((
+      ref,
+    ) {
+      final repository = ref.read(eventRepositoryProvider);
+      return EventInteractionNotifier(repository);
+    });
+
+final singleEventInteractionProvider =
+    Provider.family<EventInteraction?, String>((ref, id) {
+      final loggedUser = ref.watch(loggedUserProvider).user;
+      return ref
+          .watch(eventInteractionProvider)
+          .interactions
+          .firstWhere(
+            (i) => i.eventId == id && i.username == loggedUser.username,
+            orElse: () => EventInteraction.empty(),
+          );
+    });

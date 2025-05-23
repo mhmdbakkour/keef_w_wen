@@ -8,29 +8,31 @@ import '../../classes/data/event.dart';
 import '../../classes/data/user.dart';
 import '../widgets/event_tab_widget.dart';
 
+import 'edit_user_page.dart';
 import 'login_page.dart';
 
 enum EventFilter { saved, liked, hosted, owned }
 
 class ProfilePage extends ConsumerStatefulWidget {
-  final User loggedUser;
-
-  const ProfilePage({super.key, required this.loggedUser});
+  const ProfilePage({super.key});
 
   @override
   ConsumerState<ProfilePage> createState() => _ProfilePageState();
 }
 
+//TODO: Allow the user to edit their profile
+//TODO: Allow the user to delete their profile
 class _ProfilePageState extends ConsumerState<ProfilePage> {
-  List<String> followers = [];
-  List<String> following = [];
+  late Future<List<User>> _followersFuture;
+  late Future<List<User>> _followingFuture;
 
   @override
   void initState() {
-    ref
-        .read(userFollowersProvider(widget.loggedUser.username).notifier)
-        .refresh();
     super.initState();
+    final repository = ref.read(userRepositoryProvider);
+    final loggedUser = ref.read(loggedUserProvider).user;
+    _followersFuture = repository.fetchUsers(loggedUser.followers);
+    _followingFuture = repository.fetchUsers(loggedUser.following);
   }
 
   @override
@@ -38,10 +40,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     UserRepository repository = ref.watch(userRepositoryProvider);
     List<Event> events = ref.watch(eventProvider).events;
     List<User> users = ref.watch(userProvider).users;
-    final loggedUser = widget.loggedUser;
+    final loggedUser = ref.watch(loggedUserProvider).user;
 
-    followers = ref.watch(userFollowersProvider(loggedUser.username)).followers;
-    following = ref.watch(userFollowersProvider(loggedUser.username)).following;
+    List<String> followers = loggedUser.followers;
+    List<String> following = loggedUser.following;
 
     return Stack(
       children: [
@@ -133,8 +135,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                       events.isNotEmpty
                           ? EventTabWidget()
                           : Center(child: Text("No events available.")),
-                      _userFollowers(loggedUser, users),
-                      _userFollowing(loggedUser, users),
+                      _userFollowers(loggedUser, repository),
+                      _userFollowing(loggedUser, repository),
                     ],
                   ),
                 ),
@@ -151,8 +153,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               label: Text("Logout"),
               icon: Icon(Icons.logout),
               onPressed: () async {
-                await repository.logout();
-
                 if (mounted) {
                   await Navigator.pushReplacement(
                     context,
@@ -189,7 +189,12 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               ElevatedButton.icon(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => EditUserPage()),
+                  );
+                },
                 icon: Icon(Icons.person),
                 label: Text("Edit Profile"),
               ),
@@ -216,34 +221,52 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     );
   }
 
-  Widget _userFollowers(User loggedUser, List<User> users) {
-    if (users.isEmpty) {
-      return Center(child: Text("No users available."));
-    }
-    return ListView.builder(
-      physics: NeverScrollableScrollPhysics(),
-      itemCount: loggedUser.followers.length,
-      itemBuilder: (context, index) {
-        User user = users.firstWhere(
-          (u) => u.username == loggedUser.followers[index],
-        ); // This may be a problem if the user was not found!!!
-        return UserBriefWidget(user: user);
+  Widget _userFollowers(User loggedUser, UserRepository repository) {
+    return FutureBuilder<List<User>>(
+      future: _followersFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text("Error loading users"));
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return Center(child: Text("No users available."));
+        }
+
+        final users = snapshot.data!;
+        return ListView.builder(
+          physics: NeverScrollableScrollPhysics(),
+          shrinkWrap: true,
+          itemCount: users.length,
+          itemBuilder: (context, index) {
+            return UserBriefWidget(user: users[index]);
+          },
+        );
       },
     );
   }
 
-  Widget _userFollowing(User loggedUser, List<User> users) {
-    if (users.isEmpty) {
-      return Center(child: Text("No users available."));
-    }
-    return ListView.builder(
-      physics: NeverScrollableScrollPhysics(),
-      itemCount: loggedUser.following.length,
-      itemBuilder: (context, index) {
-        User user = users.firstWhere(
-          (u) => u.username == loggedUser.following[index],
-        ); // This may be a problem if the user was not found!!!
-        return UserBriefWidget(user: user);
+  Widget _userFollowing(User loggedUser, UserRepository repository) {
+    return FutureBuilder<List<User>>(
+      future: _followingFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text("Error loading users"));
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return Center(child: Text("No users available."));
+        }
+
+        final users = snapshot.data!;
+        return ListView.builder(
+          physics: NeverScrollableScrollPhysics(),
+          shrinkWrap: true,
+          itemCount: users.length,
+          itemBuilder: (context, index) {
+            return UserBriefWidget(user: users[index]);
+          },
+        );
       },
     );
   }

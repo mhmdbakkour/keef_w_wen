@@ -94,6 +94,38 @@ class ApiService {
         })();
   }
 
+  Future<http.Response> patch(
+    String endpoint,
+    Map<String, dynamic> body, {
+    bool requiresAuth = true,
+  }) async {
+    final url = Uri.parse('$baseUrl/$endpoint');
+
+    return requiresAuth
+        ? _authenticatedRequest((accessToken) async {
+          final headers = {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $accessToken',
+          };
+          final response = await http.patch(
+            url,
+            headers: headers,
+            body: jsonEncode(body),
+          );
+          _handleErrors(response);
+          return response;
+        })
+        : (() async {
+          final response = await http.patch(
+            url,
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode(body),
+          );
+          _handleErrors(response);
+          return response;
+        })();
+  }
+
   Future<http.StreamedResponse> postMultipart({
     required String endpoint,
     required Map<String, dynamic> rawFields,
@@ -191,7 +223,7 @@ class ApiService {
       body: jsonEncode({'refresh': refreshToken}),
     );
 
-    if (response.statusCode == 200) {
+    if (response.statusCode == 200 || response.statusCode == 401) {
       return jsonDecode(response.body);
     } else {
       throw Exception('Failed to refresh token: ${response.body}');
@@ -210,27 +242,38 @@ class ApiService {
   Future<T> _authenticatedRequest<T>(
     Future<T> Function(String accessToken) request,
   ) async {
-    // Get the current access token from secure storage
-    String? accessToken = await _getAccessToken();
+    final accessToken = await _getAccessToken();
+
+    if (accessToken == null) {
+      throw Exception('Access token is missing.');
+    }
 
     try {
-      // Try to perform the request with the current access token
-      return await request(accessToken!);
-    } on Exception {
-      // If the token is invalid/expired, refresh the token and try again
+      return await request(accessToken);
+    } on UnauthorizedException {
       final refreshResponse = await refreshToken();
       final newAccessToken = refreshResponse['access'];
-      // Store the new access token securely
+      if (newAccessToken == null) {
+        throw Exception("Token refresh failed: access token is null");
+      }
       await storage.write(key: 'access_token', value: newAccessToken);
-
-      // Try the request again with the new access token
-      return await request(newAccessToken!);
+      return await request(newAccessToken);
     }
   }
 
   void _handleErrors(http.Response response) {
+    if (response.statusCode == 401) {
+      throw UnauthorizedException('Unauthorized: ${response.body}');
+    }
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw Exception('API Error: ${response.statusCode} - ${response.body}');
     }
   }
+}
+
+class UnauthorizedException implements Exception {
+  final String message;
+  UnauthorizedException(this.message);
+  @override
+  String toString() => 'UnauthorizedException: $message';
 }

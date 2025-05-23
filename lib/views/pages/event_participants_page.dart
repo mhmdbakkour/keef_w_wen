@@ -39,9 +39,10 @@ class EventParticipantsPage extends ConsumerWidget {
             .where((p) => p.isHost == true)
             .map((p) => p.username)
             .toSet();
+
     final participantUsernames =
         participants
-            .where((p) => p.isHost != true)
+            .where((p) => p.isHost == false)
             .map((p) => p.username)
             .toSet();
 

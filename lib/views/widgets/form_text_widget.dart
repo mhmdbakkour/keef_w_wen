@@ -17,6 +17,7 @@ class FormTextWidget extends StatelessWidget {
     this.focusNode,
     this.focusNodeNext,
     this.obscureText = false,
+    this.hintText,
   });
 
   final TextEditingController controller;
@@ -32,6 +33,7 @@ class FormTextWidget extends StatelessWidget {
   final FocusNode? focusNode;
   final FocusNode? focusNodeNext;
   final bool obscureText;
+  final String? hintText;
 
   @override
   Widget build(BuildContext context) {
@@ -57,6 +59,7 @@ class FormTextWidget extends StatelessWidget {
         decoration: InputDecoration(
           prefixIcon: Icon(icon),
           labelText: label,
+          hintText: hintText,
           floatingLabelAlignment: FloatingLabelAlignment.center,
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(25)),
         ),

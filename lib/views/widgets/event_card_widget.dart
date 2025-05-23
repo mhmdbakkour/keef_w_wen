@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:keef_w_wen/classes/providers.dart';
 import 'package:keef_w_wen/views/pages/event_details_page.dart';
 import 'package:keef_w_wen/views/pages/event_lobby_page.dart';
+import 'package:keef_w_wen/views/widgets/mini_tag_widget.dart';
 import 'package:keef_w_wen/views/widgets/rating_widget.dart';
 import '../../classes/data/user.dart';
 import '../../data/constants.dart';
@@ -46,12 +47,13 @@ class EventCardWidget extends ConsumerWidget {
             borderRadius: BorderRadius.circular(12.0),
             child:
                 thumbnail.isNotEmpty
-                    ? SizedBox(
+                    ? Container(
+                      constraints: BoxConstraints(minHeight: 225),
                       width: double.infinity,
                       child: Image.network(thumbnail, fit: BoxFit.cover),
                     )
                     : Container(
-                      height: 200,
+                      height: 225,
                       color:
                           Theme.of(context).colorScheme.surfaceContainerHighest,
                       width: double.infinity,
@@ -75,6 +77,24 @@ class EventCardWidget extends ConsumerWidget {
                   vertical: 5,
                 ),
                 child: Text(description, style: AppTextStyle.eventCardDescText),
+              ),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+                child: SizedBox(
+                  height: 30,
+                  child: ListView.builder(
+                    physics: NeverScrollableScrollPhysics(),
+                    shrinkWrap: true,
+                    scrollDirection: Axis.horizontal,
+                    itemCount: event.tags.length,
+                    itemBuilder: (context, index) {
+                      return MiniTagWidget(
+                        label: event.tags[index],
+                        selected: false,
+                      );
+                    },
+                  ),
+                ),
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 15),

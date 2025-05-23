@@ -18,8 +18,8 @@ class Participant {
       id: json['id'] ?? '',
       username: json['user'] ?? '',
       eventId: json['event'] ?? '',
-      isHost: json['isHost'] ?? false,
-      isOwner: json['isOwner'] ?? false,
+      isHost: json['is_host'] ?? false,
+      isOwner: json['is_owner'] ?? false,
     );
   }
 
@@ -28,8 +28,8 @@ class Participant {
       'id': id,
       'user': username,
       'event': eventId,
-      'isHost': isHost,
-      'isOwner': isOwner,
+      'is_host': isHost,
+      'is_owner': isOwner,
     };
   }
 

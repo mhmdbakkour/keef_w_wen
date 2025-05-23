@@ -51,6 +51,8 @@ dependencies:
   flutter_secure_storage: ^9.2.4
   flutter_launcher_icons: ^0.14.3
   image_picker: ^1.1.2
+  qr_flutter: ^4.1.0
+  mobile_scanner: ^7.0.0
 
 flutter_native_splash:
   background_image: assets/images/splash_screen.png
